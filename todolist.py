@@ -150,7 +150,7 @@ class TodoList(QWidget):
             reply = QMessageBox.question(
                 self,
                 "Delete",
-                "Delete this task? You won't get any coins.",
+                "Delete this task? You won't get any money.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:
@@ -161,13 +161,13 @@ class TodoList(QWidget):
         reply = QMessageBox.question(
             self,
             "Clear",
-            "Delete all tasks? You'll only get coins for the tasks you completed",
+            "Delete all tasks? You'll only get money for the tasks you completed",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
         if reply == QMessageBox.StandardButton.Yes:
-            completed = sum(1 for t in self.tasks if t["done"])
+            completed = int(sum(1 for t in self.tasks if t["done"]))
             not_completed = len(self.tasks) - completed
-            #use not completed/completed for coins later?
+            money += completed
             self.tasks.clear()
             self.refresh_list()
 
