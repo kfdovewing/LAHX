@@ -28,7 +28,7 @@ items = {
     "idk yet": 30
 }
 
-
+#checks if you have enough money
 def buy_item(items, index_list, i, total):
     index = index_list[i]
     cost = items[index]
@@ -41,7 +41,7 @@ def buy_item(items, index_list, i, total):
 
     return True
 
-
+#updates money variable
 def update_money(items, index_list, i, total):
     cost = items[index_list[i]]
     if i == 1:
@@ -51,13 +51,13 @@ def update_money(items, index_list, i, total):
     return total - cost, food
 
 
-
+#updates display for FUNDS ONLY
 def update_display(total, btn):
     funds.setText(f"funds: ${total}")
     btn.setText("SOLD OUT")
     btn.setEnabled(False)
 
-
+#combined function to run all the functions on click
 def update(index_list, i, btn):
     global money, food, display_food
 
@@ -69,7 +69,7 @@ def update(index_list, i, btn):
             display_food.setText(f"food: {food}")
 
 
-
+#makes the buttons
 def list_items(items):
     index_list = list(items.keys())
 
@@ -77,7 +77,6 @@ def list_items(items):
         key = index_list[i]
         cost = items[key]
 
-        # display only (DO NOT change real cost logic)
         display_cost = abs(cost) if cost < 0 else cost
 
         btn = QPushButton(f"{key}: ${display_cost}", window)
