@@ -4,7 +4,7 @@ root = tk.Tk()
 root.geometry("500x300")
 root.title("Shop")
 
-money = tk.IntVar(root, value = 100)
+money = tk.IntVar(root, value = 20)
 
 funds = tk.Label(root, text ="funds: $" + str(money.get()))
 funds.grid(row = 0, column = 0, padx=5, pady=5)
@@ -16,6 +16,9 @@ def buy_item(items, index_list, i, total):
         invalid = tk.Label(root, text = "Not enough money!")
         invalid.grid(row = 2, column = 0, padx=5, pady=5)
         invalid.after(2000, invalid.destroy)
+        return False
+    else:
+        return True
 
 def update_money(items, index_list, i, total):
     cost = items[index_list[i]]
@@ -26,9 +29,9 @@ def update_display(total, btn):
     btn.config(text = "SOLD OUT")
 
 def update(index_list, i, btn):
-    buy_item(items, index_list, i, money)
-    money.set(update_money(items, index_list, i, money))
-    update_display(money, btn)
+    if buy_item(items, index_list, i, money):
+        money.set(update_money(items, index_list, i, money))
+        update_display(money, btn)
 
 
     
