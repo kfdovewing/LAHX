@@ -160,23 +160,15 @@ class TodoList(QWidget):
         reply = QMessageBox.question(
             self,
             "Clear",
-            "Delete all tasks? You won't get any coins.",
+            "Delete all tasks? You'll only get coins for the tasks you completed",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
         if reply == QMessageBox.StandardButton.Yes:
             completed = sum(1 for t in self.tasks if t["done"])
             not_completed = len(self.tasks) - completed
-
+            #use not completed/completed for coins later?
             self.tasks.clear()
             self.refresh_list()
-
-            QMessageBox.information(
-                self,
-                "Tasks Cleared",
-                f"Cleared {len(self.tasks) + completed + not_completed} tasks"
-                f"Completed: {completed}"
-                f"Not completed: {not_completed}"
-            )
 
 
 if __name__ == "__main__":
