@@ -44,7 +44,12 @@ def buy_item(items, index_list, i, total):
 
 def update_money(items, index_list, i, total):
     cost = items[index_list[i]]
-    return total - cost
+    if i == 1:
+        food = True
+    else:
+        food = False
+    return total - cost, food
+
 
 
 def update_display(total, btn):
@@ -54,11 +59,15 @@ def update_display(total, btn):
 
 
 def update(index_list, i, btn):
-    global money, food
+    global money, food, display_food
 
     if buy_item(items, index_list, i, money):
-        money = update_money(items, index_list, i, money)
+        money, is_food = update_money(items, index_list, i, money)
         update_display(money, btn)
+        if is_food:
+            food +=1
+            display_food.setText(f"food: {food}")
+
 
 
 def list_items(items):
