@@ -134,9 +134,9 @@ class TodoList(QWidget):
         i = self.get_selected_index()
         if i is None:
             return
-
         self.tasks[i]["done"] = True
         self.refresh_list()
+        money += 2
 
     def delete_task(self):
         i = self.get_selected_index()
