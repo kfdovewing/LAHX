@@ -1,8 +1,6 @@
 import tkinter as tk
 
 root = tk.Tk()
-root.title("TomoBuddy")
-root.geometry("300x300")
-
-
+root.geometry("400x400")
+root.title("Shop")
 root.mainloop()
