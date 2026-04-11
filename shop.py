@@ -1,4 +1,5 @@
 import sys
+import shared_state
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QGridLayout, QPushButton
 from PyQt6.QtCore import QTimer
 
@@ -11,10 +12,9 @@ window.setGeometry(100, 100, 400, 300)
 grid = QGridLayout()
 window.setLayout(grid)
 
-money = 20
 food = 0
 
-funds = QLabel(f"funds: ${money}")
+funds = QLabel(f"funds: ${shared_state.money}")
 display_food = QLabel(f"food: {food}")
 
 grid.addWidget(funds, 0, 0)
@@ -62,7 +62,7 @@ def update(index_list, i, btn):
     global money, food, display_food
 
     if buy_item(items, index_list, i, money):
-        money, is_food = update_money(items, index_list, i, money)
+        shared_state.money, is_food = update_money(items, index_list, i, money)
         update_display(money, btn)
         if is_food:
             food +=1
