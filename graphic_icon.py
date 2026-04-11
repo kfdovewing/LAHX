@@ -1,25 +1,27 @@
-import tkinter as tk
-from tkinter import *
-from PIL import Image
+import sys
+from PyQt6.QtWidgets import QApplication, QLabel
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import Qt
 
-root = tk.Tk()
+app = QApplication(sys.argv)
 
-frame = Frame(root)
-frame.pack()
+w = 350
+h = 400
 
-canvas = Canvas(frame, bg="systemTransparent", width=700, height=400)
-canvas.pack()
+centerw = w/2
+centerh = h/2
 
-root.wm_attributes('-topmost', True)
-root.wm_attributes('-transparent', True) # Make that color invisible
-root.config(bg='systemTransparent')
+label = QLabel()
 
-character = PhotoImage(file="egg2.png")
-canvas.create_image(0,0,image=character, anchor="center")
+pixmap = QPixmap("egg2.png")
+label.setPixmap(pixmap)
+# Remove title bar
+# label.setWindowFlags(Qt.WindowType.FramelessWindowHint|Qt.WindowType.WindowStaysOnTopHint)
 
-# root.image = tk.PhotoImage(file="egg2.png")
-# label = tk.Label(root, image=root.image)
-# label = tk.Label(root, text="Floating Text", font=("Arial", 24), fg="red")
-# label.config(bg='systemTransparent')
-# label.pack()
-root.mainloop()
+label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+label.setStyleSheet("background: transparent;")
+
+label.show()
+
+
+sys.exit(app.exec())
