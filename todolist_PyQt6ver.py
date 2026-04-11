@@ -170,7 +170,6 @@ class TodoList(QWidget):
             self.tasks.clear()
             self.refresh_list()
 
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = TodoList()
