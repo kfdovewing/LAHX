@@ -12,10 +12,8 @@ window.setGeometry(100, 100, 400, 300)
 grid = QGridLayout()
 window.setLayout(grid)
 
-food = 0
-
 funds = QLabel(f"funds: ${shared_state.money}")
-display_food = QLabel(f"food: {food}")
+display_food = QLabel(f"food: {shared_state.food}")
 
 grid.addWidget(funds, 0, 0)
 grid.addWidget(display_food, 0, 1)
@@ -61,12 +59,12 @@ def update_display(total, btn):
 def update(index_list, i, btn):
     global money, food, display_food
 
-    if buy_item(items, index_list, i, money):
-        shared_state.money, is_food = update_money(items, index_list, i, money)
-        update_display(money, btn)
+    if buy_item(items, index_list, i, shared_state.money):
+        shared_state.money, is_food = update_money(items, index_list, i, shared_state.money)
+        update_display(shared_state.money, btn)
         if is_food:
-            food +=1
-            display_food.setText(f"food: {food}")
+            shared_state.food +=1
+            display_food.setText(f"food: {shared_state.food}")
 
 
 #makes the buttons
