@@ -81,6 +81,7 @@ def open_file():
 home.clicked.connect(lambda: print("home"))
 email.clicked.connect(lambda: print("email"))
 shop.clicked.connect(lambda: print("shop"))
+shop.clicked.connect(lambda: subprocess.Popen([sys.executable, "shop.py"]))
 # Transparent window
 window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 email.clicked.connect(open_file)
