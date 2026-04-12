@@ -36,7 +36,7 @@ def increase_hunger():
 
 
 timer.timeout.connect(increase_hunger)
-timer.start(1000)
+timer.start(2000*60)
 
 
 def decrease_happiness():
@@ -46,7 +46,7 @@ def decrease_happiness():
 timer2 = QTimer()
 
 timer2.timeout.connect(decrease_happiness)
-timer2.start(5000)
+timer2.start(4*60)
 
 window.show()
 sys.exit(app.exec())
