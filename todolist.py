@@ -13,7 +13,7 @@ class TodoList(QWidget):
         super().__init__()
         self.setWindowTitle("To-Do List")
         self.setFixedSize(350, 500)
-
+        self.money = 0
         self.tasks = []
 
         self.setup_ui()
@@ -136,7 +136,7 @@ class TodoList(QWidget):
             return
         self.tasks[i]["done"] = True
         self.refresh_list()
-        money += 2
+        self.money += 2
 
     def delete_task(self):
         i = self.get_selected_index()
@@ -167,7 +167,7 @@ class TodoList(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             completed = int(sum(1 for t in self.tasks if t["done"]))
             not_completed = len(self.tasks) - completed
-            money += completed
+            self.money += completed
             self.tasks.clear()
             self.refresh_list()
 
@@ -176,3 +176,5 @@ if __name__ == "__main__":
     window = TodoList()
     window.show()
     sys.exit(app.exec())
+
+#fdksjfldsa
