@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
+import subprocess
 
 class ClickableLabel(QLabel):
     clicked = pyqtSignal()
@@ -75,17 +75,23 @@ shop_bu = QPixmap("assets/shop.png").scaled(int(w*0.1),int(h*0.1),Qt.AspectRatio
 shop.setPixmap(shop_bu)
 shop.move(int(w/2+shop_bu.width()*1.5),int(h-(h/6)))
 
+def open_file():
+    subprocess.Popen([sys.executable, "todolist.py"])
+
 home.clicked.connect(lambda: print("home"))
 email.clicked.connect(lambda: print("email"))
 shop.clicked.connect(lambda: print("shop"))
 # Transparent window
 window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+email.clicked.connect(open_file)
+# # Transparent window
+# window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
-# Remove title bar
-window.setWindowFlags(
-    Qt.WindowType.FramelessWindowHint|
-    Qt.WindowType.WindowStaysOnTopHint
-)
+# # Remove title bar
+# window.setWindowFlags(
+#     Qt.WindowType.FramelessWindowHint|
+#     Qt.WindowType.WindowStaysOnTopHint
+# )
 window.show()
 
 sys.exit(app.exec())
