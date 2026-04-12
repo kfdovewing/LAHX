@@ -1,26 +1,11 @@
 import sys
-from PyQt6.QtGui import QPixmap, QIcon
-from PyQt6.QtCore import Qt, QSize, pyqtSignal
+import shared_state
+from pathlib import Path
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QApplication,
-    QCheckBox,
-    QComboBox,
-    QDateEdit,
-    QDateTimeEdit,
-    QDial,
-    QDoubleSpinBox,
-    QFontComboBox,
     QLabel,
-    QLCDNumber,
-    QLineEdit,
-    QMainWindow,
-    QProgressBar,
-    QPushButton,
-    QRadioButton,
-    QSlider,
-    QSpinBox,
-    QTimeEdit,
-    QVBoxLayout,
     QWidget,
 )
 import subprocess
@@ -41,39 +26,38 @@ h = 280
 window = QWidget()
 window.resize(w,h)
 window.move(screen_dim.right()-w,screen_dim.top())
-
 bg = QLabel(window)
 sky = QPixmap("assets/sky.png").scaled(int(w*0.7),int(h*0.7),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
 bg.setPixmap(sky)
 bg.move(int(w/2-sky.width()/2),int(h/2-sky.height()/2))
 
 char = QLabel(window)
-party = QPixmap("assets/party_guy.png").scaled(int(w*0.5),int(h*0.5),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
-char.setPixmap(party)
+buddy = QPixmap(shared_state.buddy).scaled(int(w*0.45),int(h*0.45),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+char.setPixmap(buddy)
 
-centerx = int(w/2 - party.width()/2)
-centery = int(h/2 - party.height()/2.5)
-char.move(centerx,centery)
+centerx = int(w/2)
+centery = int(h/2)
+char.move(int(centerx-buddy.width()/2),int(centery-buddy.height()/2))
 
 egg = QLabel(window)
-shell = QPixmap("assets/egg2.png").scaled(w,h,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+shell = QPixmap("assets/bigegg.png").scaled(w,h,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
 egg.setPixmap(shell)
 
 
 home = ClickableLabel(window)
-home_bu = QPixmap("assets/home_button_icon.png").scaled(int(w*0.1),int(h*0.1),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+home_bu = QPixmap("assets/home_button_icon.png").scaled(int(w*0.15),int(h*0.15),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
 home.setPixmap(home_bu)
-home.move(centerx,int(h-(h/6)))
+home.move(int(w/4),int(h-(h/4.8)))
 
 email = ClickableLabel(window)
-email_bu = QPixmap("assets/email.png").scaled(int(w*0.1),int(h*0.1),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+email_bu = QPixmap("assets/email.png").scaled(int(w*0.15),int(h*0.15),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
 email.setPixmap(email_bu)
-email.move(int(w/2 - email_bu.width()/2.5),int(h-(h/6)))
+email.move(int(w/2 - email_bu.width()/2),int(h-(h/4.8)))
 
 shop = ClickableLabel(window)
-shop_bu = QPixmap("assets/shop.png").scaled(int(w*0.1),int(h*0.1),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+shop_bu = QPixmap("assets/shop.png").scaled(int(w*0.15),int(h*0.15),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
 shop.setPixmap(shop_bu)
-shop.move(int(w/2+shop_bu.width()*1.5),int(h-(h/6)))
+shop.move(int(w-w/2.5),int(h-(h/4.8)))
 
 def open_file():
     subprocess.Popen([sys.executable, "todolist.py"])
