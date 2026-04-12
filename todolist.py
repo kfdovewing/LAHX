@@ -169,7 +169,6 @@ class TodoList(QWidget):
             completed = int(sum(1 for t in self.tasks if t["done"]))
             not_completed = len(self.tasks) - completed
             shared_state.money += completed
-            print(shared_state.money)
             self.tasks.clear()
             self.refresh_list()
 
