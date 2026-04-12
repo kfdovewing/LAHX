@@ -6,12 +6,13 @@ from PyQt6.QtWidgets import (
     QLabel, QLineEdit, QPushButton, QListWidget,
     QListWidgetItem, QMessageBox
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import pyqtSignal, Qt
 
 
 class TodoList(QWidget):
-    def __init__(self):
-        super().__init__()
+    todo_clicked = pyqtSignal()
+    def __init__(self, parent = None):
+        super().__init__(parent)
         self.setWindowTitle("To-Do List")
         self.setFixedSize(350, 500)
         self.money = 0
@@ -173,10 +174,5 @@ class TodoList(QWidget):
             self.tasks.clear()
             self.refresh_list()
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = TodoList()
-    window.show()
-    sys.exit(app.exec())
 
 #fdksjfldsa
