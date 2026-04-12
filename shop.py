@@ -1,113 +1,154 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QGridLayout, QPushButton
-from PyQt6.QtCore import QTimer
+from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton, QApplication
+from PyQt6.QtCore import QTimer, pyqtSignal, Qt
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import Qt
 import shared_state
 
-app = QApplication(sys.argv)
-
-window = QWidget()
-window.setWindowTitle("Shop")
-window.setGeometry(100, 100, 500, 300)
-
-grid = QGridLayout()
-window.setLayout(grid)
-
-grid.setContentsMargins(100, 100, 0, 0)
-grid.setSpacing(5)
-grid.setAlignment(Qt.AlignmentFlag.AlignTop)
-# shop background
-bg = QLabel(window)
-bg_pix = QPixmap("shop.png")
-
-bg_pix = bg_pix.scaled(
-    window.size(),
-    Qt.AspectRatioMode.KeepAspectRatio,
-    Qt.TransformationMode.SmoothTransformation
-)
-
-bg.setPixmap(bg_pix)
-grid.addWidget(bg, 1, 1)
-bg.lower()
-
-window.showMaximized()
+class ClickableLabel(QLabel):
+    clicked = pyqtSignal()
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            event.accept()
+            self.clicked.emit()
 
 
-funds = QLabel(f"funds: ${shared_state.money}")
-display_food = QLabel(f"food: {shared_state.food}")
+class ShopPage(QWidget):
+    action_triggered = pyqtSignal()
+    icon_clicked = pyqtSignal()
+    todo_clicked = pyqtSignal()
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(400, 500)
+        grid = QGridLayout()
+        self.setLayout(grid)
 
-grid.addWidget(funds, 0, 1)
-grid.addWidget(display_food, 0, 2)
+        w=400
+        h=500
 
-
-items = {
-    "free gift": -10,
-    "food": 15,
-    "clown nose": 35,
-    "party hat": 50
-}
-
-#checks if you have enough money
-def buy_item(items, index_list, i, total):
-    index = index_list[i]
-    cost = items[index]
-
-    if total < cost:
-        invalid = QLabel("Not enough money!")
-        grid.addWidget(invalid, 2, 0)
-        QTimer.singleShot(2000, invalid.deleteLater)
-        return False
-
-    return True
-
-#updates money variable
-def update_money(items, index_list, i, total):
-    cost = items[index_list[i]]
-    if i == 1:
-        food = True
-    else:
-        food = False
-    return total - cost, food
+        grid.setContentsMargins(20, 20, 20, 20)
+        grid.setSpacing(5)
+        grid.setAlignment(Qt.AlignmentFlag.AlignTop)
+        # self.back_btn = QPushButton(self)
+        # self.back_btn.setText("Back")
+        # self.back_btn.clicked.connect(self.back_requested.emit)
+        # grid.addWidget(self.back_btn, 0, 2)
+        
+        # sky = QLabel(self)
+        # sky_pix = QPixmap("assets/sky_long.png")
+        # sky.setPixmap(sky_pix)
+        # sky.resize(400,700)
+        # sky.lower()
+        # sky.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
 
-#updates display for FUNDS ONLY
-def update_display(total, btn):
-    funds.setText(f"funds: ${total}")
-    btn.setText("SOLD OUT")
-    btn.setEnabled(False)
-
-#combined function to run all the functions on click
-def update(index_list, i, btn):
-    global money, food, display_food
-
-    if buy_item(items, index_list, i, shared_state.money):
-        shared_state.money, is_food = update_money(items, index_list, i, shared_state.money)
-        update_display(shared_state.money, btn)
-        if is_food:
-            shared_state.food +=1
-            display_food.setText(f"food: {shared_state.food}")
+        # ---------------- BACKGROUND ----------------
+        bg = QLabel(self)
+        bg_pix = QPixmap("shop.png").scaled(240, 280, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        bg.setPixmap(bg_pix)
+        bg.setGeometry(100, 100, 240, 280) # Force it to fill the window
+        # bg.lower()
+        bg.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
 
-#makes the buttons
-def list_items(items):
-    index_list = list(items.keys())
+        self.icon = ClickableLabel(self)
+        icon_bu = QPixmap("assets/egg.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        self.icon.setPixmap(icon_bu)
+        self.icon.move(int(w/4),int(h-(h/4.8)))
 
-    for i in range(len(index_list)):
-        key = index_list[i]
-        cost = items[key]
+        self.home = ClickableLabel(self)
+        home_bu = QPixmap("assets/home_button_icon.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        self.home.setPixmap(home_bu)
+        self.home.move(int(w-w/2.5),int(h-(h/4.8)))
 
-        display_cost = abs(cost) if cost < 0 else cost
-
-        btn = QPushButton(f"{key}: ${display_cost}")
-
-        btn.clicked.connect(lambda checked=False, i=i, btn=btn: update(index_list, i, btn))
-
-        row, col = divmod(i, 4)
-        grid.addWidget(btn, row + 2, col)
+        self.email = ClickableLabel(self)
+        email_bu = QPixmap("assets/email.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        self.email.setPixmap(email_bu)
+        self.email.move(int(w/2 - email_bu.width()/2),int(h-(h/4.8)))
 
 
-list_items(items)
+        # Connect button to emission function
+        self.home.clicked.connect(self.open_home)
+        self.icon.clicked.connect(self.open_icon)
+        self.email.clicked.connect(self.open_todo)
 
-window.show()
-sys.exit(app.exec())
+   
+
+
+        # ---------------- UI LABELS ----------------
+        self.funds = QLabel(f"funds: ${shared_state.shared.money}")
+        self.display_food = QLabel(f"food: {shared_state.shared.food}")
+
+        grid.addWidget(self.funds, 0, 0)
+        grid.addWidget(self.display_food, 0, 1)
+
+        # ---------------- ITEMS ----------------
+        self.items = {
+            "free gift": 0,
+            "food": 15,
+            "clown nose": 35,
+            "party hat": 50
+        }
+
+        for i, key in enumerate(self.items):
+
+            btn = QPushButton(f"{key}: ${self.items[key]}")
+
+            btn.clicked.connect(lambda _, k=key, b=btn: self.buy(k, b))
+
+            row, col = divmod(i, 2)
+            grid.addWidget(btn, row + 1, col)
+
+    def open_home(self):
+        print("Home clicked in MainWindow")
+        self.action_triggered.emit()
+    def open_icon(self):
+        print("Shop clicked in MainWindow")
+        self.icon_clicked.emit()
+    def open_todo(self):
+        print("Todo clicked in MainWindow")
+        self.todo_clicked.emit()
+    # ---------------- BUY LOGIC ----------------
+    def show_warning(self, text):
+        self.invalid = QLabel(text, self)
+        self.invalid.setStyleSheet("""
+            background-color: rgba(255, 0, 0, 200); 
+            color: white; padding: 5px; border-radius: 5px;
+        """)
+        self.invalid.adjustSize()
+        self.invalid.move(70, 120) 
+        self.invalid.raise_()
+        self.invalid.show()
+        QTimer.singleShot(2000, self.invalid.deleteLater)
+    def buy(self, item, btn):
+        cost = self.items[item]
+
+        if shared_state.shared.money < cost:
+            self.show_warning("Not enough money")
+            return
+
+        shared_state.shared.money -= cost
+
+        if item == "food":
+            shared_state.shared.food += 1
+            self.display_food.setText(f"food: {shared_state.shared.food}")
+
+        self.funds.setText(f"funds: ${shared_state.shared.money}")
+        btn.setText("SOLD OUT")
+        btn.setEnabled(False)
+    def refresh_ui(self):
+        # Update the labels with the CURRENT values from shared_state
+        self.funds.setText(f"funds: ${shared_state.shared.money}")
+        self.display_food.setText(f"food: {shared_state.shared.food}")
+        print(f"Shop UI Refreshed: Money is {shared_state.shared.money}")
+    
+
+
+    # --- PROTECTED EXECUTION BLOCK ---
+if __name__ == "__main__":
+    # This only runs if you play THIS file directly. 
+    # It won't run when you import it into run.py.
+    app = QApplication(sys.argv)
+    window = ShopPage()
+    window.show()
+    sys.exit(app.exec())
+

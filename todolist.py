@@ -6,18 +6,62 @@ from PyQt6.QtWidgets import (
     QLabel, QLineEdit, QPushButton, QListWidget,
     QListWidgetItem, QMessageBox
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtGui import QPixmap
 
+
+class ClickableLabel(QLabel):
+    clicked = pyqtSignal()
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            event.accept()
+            self.clicked.emit()
 
 class TodoList(QWidget):
-    def __init__(self):
-        super().__init__()
+    icon_clicked = pyqtSignal()
+    shop_clicked = pyqtSignal()
+    action_triggered = pyqtSignal()
+    def __init__(self, parent = None):
+        super().__init__(parent)
         self.setWindowTitle("To-Do List")
-        self.setFixedSize(350, 500)
         self.money = 0
         self.tasks = []
 
+        w = 350
+        h = 500 
+
         self.setup_ui()
+
+        self.icon = ClickableLabel(self)
+        icon_bu = QPixmap("assets/egg.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        self.icon.setPixmap(icon_bu)
+        self.icon.move(5,0)
+
+        self.shop = ClickableLabel(self)
+        shop_bu = QPixmap("assets/shop.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        self.shop.setPixmap(shop_bu)
+        self.shop.move(int(shop_bu.width()*1.1+6),0)
+
+        self.home = ClickableLabel(self)
+        home_bu = QPixmap("assets/home_button_icon.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        self.home.setPixmap(home_bu)
+        self.home.move(int(shop_bu.width()*2.2+6),0)
+
+        # Connect button to emission function
+        self.icon.clicked.connect(self.open_icon)
+        self.shop.clicked.connect(self.open_shop)
+        self.home.clicked.connect(self.open_home)
+        
+    def open_icon(self):
+        print("Icon clicked in MainWindow")
+        self.icon_clicked.emit()
+    def open_shop(self):
+        print("Shop clicked in MainWindow")
+        self.shop_clicked.emit()
+    def open_home(self):
+        print("Todo clicked in MainWindow")
+        self.action_triggered.emit()
+
 
     def setup_ui(self):
         main_layout = QVBoxLayout()
@@ -137,8 +181,8 @@ class TodoList(QWidget):
             return
         self.tasks[i]["done"] = True
         self.refresh_list()
-        shared_state.money += 5
-        print(shared_state.money)
+        shared_state.shared.money += 5
+        print(shared_state.shared.money)
 
     def delete_task(self):
         i = self.get_selected_index()
@@ -169,14 +213,9 @@ class TodoList(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             completed = int(sum(1 for t in self.tasks if t["done"]))
             not_completed = len(self.tasks) - completed
-            print(shared_state.money)
+            print(shared_state.shared.money)
             self.tasks.clear()
             self.refresh_list()
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = TodoList()
-    window.show()
-    sys.exit(app.exec())
 
 #fdksjfldsa
