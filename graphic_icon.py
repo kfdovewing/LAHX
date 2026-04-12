@@ -1,27 +1,80 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QLabel
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap, QIcon
+from PyQt6.QtCore import Qt, QSize, pyqtSignal
+from PyQt6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QDateEdit,
+    QDateTimeEdit,
+    QDial,
+    QDoubleSpinBox,
+    QFontComboBox,
+    QLabel,
+    QLCDNumber,
+    QLineEdit,
+    QMainWindow,
+    QProgressBar,
+    QPushButton,
+    QRadioButton,
+    QSlider,
+    QSpinBox,
+    QTimeEdit,
+    QVBoxLayout,
+    QWidget,
+)
+
+
+class ClickableLabel(QLabel):
+    clicked = pyqtSignal()
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.clicked.emit()
+
+
 
 app = QApplication(sys.argv)
+screen_dim = app.primaryScreen().availableGeometry()
 
-w = 350
-h = 400
+w = 240
+h = 280
+window = QWidget()
+window.resize(w,h)
+window.move(screen_dim.right()-w,screen_dim.top())
 
-centerw = w/2
-centerh = h/2
+char = QLabel(window)
+party = QPixmap("assets/party_guy.png").scaled(int(w*0.5),int(h*0.5),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+char.setPixmap(party)
 
-label = QLabel()
+centerx = int(w/2 - party.width()/2)
+centery = int(h/2 - party.height()/2.5)
+char.move(centerx,centery)
 
-pixmap = QPixmap("egg2.png")
-label.setPixmap(pixmap)
+bg = QLabel(window)
+shell = QPixmap("assets/egg2.png").scaled(w,h,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+bg.setPixmap(shell)
+
+
+home = ClickableLabel(window)
+home_bu = QPixmap("assets/home_button_icon.png").scaled(int(w*0.1),int(h*0.1),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+home.setPixmap(home_bu)
+home.move(centerx,int(h-(h/6)))
+
+email = ClickableLabel(window)
+email_bu = QPixmap("assets/email.png").scaled(int(w*0.1),int(h*0.1),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+email.setPixmap(email_bu)
+email.move(int(w/2 - email_bu.width()/3),int(h-(h/6)))
+
+home.clicked.connect(lambda: print("home"))
+email.clicked.connect(lambda: print("email"))
+# Transparent window
+window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
 # Remove title bar
-# label.setWindowFlags(Qt.WindowType.FramelessWindowHint|Qt.WindowType.WindowStaysOnTopHint)
-
-label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-label.setStyleSheet("background: transparent;")
-
-label.show()
-
+window.setWindowFlags(
+    Qt.WindowType.FramelessWindowHint|
+    Qt.WindowType.WindowStaysOnTopHint
+)
+window.show()
 
 sys.exit(app.exec())
