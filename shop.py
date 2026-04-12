@@ -21,9 +21,9 @@ grid.addWidget(display_food, 0, 1)
 
 items = {
     "free gift": -10,
-    "food": 10,
-    "outfit": 20,
-    "idk yet": 30
+    "food": 15,
+    "clown nose": 35,
+    "party hat": 50
 }
 
 #checks if you have enough money
