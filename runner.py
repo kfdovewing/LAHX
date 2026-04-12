@@ -89,6 +89,10 @@ class run(QWidget):
         self.email_page.shop_clicked.connect(self.handle_child_action_shop)
         self.email_page.icon_clicked.connect(self.handle_child_start)
 
+        self.shop_page.action_triggered.connect(self.handle_child_action) # Home Icon -> Home Page
+        self.shop_page.icon_clicked.connect(self.handle_child_start)     # Egg Icon -> Small Icon
+        self.shop_page.todo_clicked.connect(self.handle_child_action_todo)
+
     def handle_child_start(self):
         print('Signal Received: Updating and Switching')
         # This triggers the code above!
@@ -134,8 +138,17 @@ class run(QWidget):
 
     def handle_child_action_todo(self):
         print('Signal Received: Switching to todo Page')
-        self.setGeometry(self.screen.right()-350,0,350, 500)
-        self.stack.resize(350,500)
+        # Force out of maximized mode if coming from Home
+        self.setWindowState(Qt.WindowState.WindowNoState)
+        
+        w, h = 350, 500
+        screen_geo = QApplication.primaryScreen().availableGeometry()
+        
+        # Calculate right-aligned X position
+        new_x = screen_geo.right() - w
+        
+        self.setGeometry(new_x, 0, w, h)
+        self.stack.resize(w, h)
         self.stack.setCurrentWidget(self.email_page)
 
 
