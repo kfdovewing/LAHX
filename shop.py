@@ -32,7 +32,7 @@ def buy_item(items, index_list, i, total):
     cost = items[index]
 
     if total < cost:
-        invalid = QLabel("Not enough money!", window)
+        invalid = QLabel("Not enough money!")
         grid.addWidget(invalid, 2, 0)
         QTimer.singleShot(2000, invalid.deleteLater)
         return False
@@ -77,7 +77,7 @@ def list_items(items):
 
         display_cost = abs(cost) if cost < 0 else cost
 
-        btn = QPushButton(f"{key}: ${display_cost}", window)
+        btn = QPushButton(f"{key}: ${display_cost}")
 
         btn.clicked.connect(lambda checked=False, i=i, btn=btn: update(index_list, i, btn))
 
