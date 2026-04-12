@@ -14,7 +14,9 @@ window.setGeometry(100, 100, 500, 300)
 grid = QGridLayout()
 window.setLayout(grid)
 
-
+grid.setContentsMargins(100, 100, 0, 0)
+grid.setSpacing(5)
+grid.setAlignment(Qt.AlignmentFlag.AlignTop)
 # shop background
 bg = QLabel(window)
 bg_pix = QPixmap("shop.png")
@@ -26,7 +28,7 @@ bg_pix = bg_pix.scaled(
 )
 
 bg.setPixmap(bg_pix)
-bg.setGeometry(0, 0, 400, 300)
+grid.addWidget(bg, 1, 1)
 bg.lower()
 
 window.showMaximized()
@@ -35,8 +37,8 @@ window.showMaximized()
 funds = QLabel(f"funds: ${shared_state.money}")
 display_food = QLabel(f"food: {shared_state.food}")
 
-grid.addWidget(funds, 0, 0)
-grid.addWidget(display_food, 0, 1)
+grid.addWidget(funds, 0, 1)
+grid.addWidget(display_food, 0, 2)
 
 
 items = {
@@ -102,7 +104,7 @@ def list_items(items):
         btn.clicked.connect(lambda checked=False, i=i, btn=btn: update(index_list, i, btn))
 
         row, col = divmod(i, 4)
-        grid.addWidget(btn, row + 1, col)
+        grid.addWidget(btn, row + 2, col)
 
 
 list_items(items)
