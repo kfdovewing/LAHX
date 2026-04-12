@@ -1,5 +1,6 @@
 #use light mode!
 import sys
+import shared_state
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QListWidget,
@@ -136,7 +137,7 @@ class TodoList(QWidget):
             return
         self.tasks[i]["done"] = True
         self.refresh_list()
-        self.money += 2
+        money += 2
 
     def delete_task(self):
         i = self.get_selected_index()
@@ -167,7 +168,7 @@ class TodoList(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             completed = int(sum(1 for t in self.tasks if t["done"]))
             not_completed = len(self.tasks) - completed
-            self.money += completed
+            money += completed
             self.tasks.clear()
             self.refresh_list()
 
