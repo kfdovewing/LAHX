@@ -138,6 +138,7 @@ class TodoList(QWidget):
         self.tasks[i]["done"] = True
         self.refresh_list()
         shared_state.money += 5
+        print(shared_state.money)
 
     def delete_task(self):
         i = self.get_selected_index()
@@ -162,13 +163,12 @@ class TodoList(QWidget):
         reply = QMessageBox.question(
             self,
             "Clear",
-            "Delete all tasks? You'll only get money for the tasks you completed",
+            "Delete all tasks? You will not get money for the tasks you did not complete.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
         if reply == QMessageBox.StandardButton.Yes:
             completed = int(sum(1 for t in self.tasks if t["done"]))
             not_completed = len(self.tasks) - completed
-            shared_state.money += 5*completed
             print(shared_state.money)
             self.tasks.clear()
             self.refresh_list()
