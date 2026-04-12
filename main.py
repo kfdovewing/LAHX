@@ -1,8 +1,0 @@
-import tkinter as tk
-
-root = tk.Tk()
-root.title("TomoBuddy")
-root.geometry("300x300")
-
-
-root.mainloop()

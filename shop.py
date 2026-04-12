@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QGridLayout, QPushButton, QMainWindow
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QGridLayout, QPushButton
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
@@ -31,11 +31,8 @@ bg.lower()
 window.showMaximized()
 
 
-money = 20
-food = 0
-
-funds = QLabel(f"funds: ${money}")
-display_food = QLabel(f"food: {food}")
+funds = QLabel(f"funds: ${shared_state.money}")
+display_food = QLabel(f"food: {shared_state.food}")
 
 grid.addWidget(funds, 0, 0)
 grid.addWidget(display_food, 0, 1)
@@ -43,9 +40,9 @@ grid.addWidget(display_food, 0, 1)
 
 items = {
     "free gift": -10,
-    "food": 10,
-    "outfit": 20,
-    "idk yet": 30
+    "food": 15,
+    "clown nose": 35,
+    "party hat": 50
 }
 
 #checks if you have enough money
@@ -54,7 +51,7 @@ def buy_item(items, index_list, i, total):
     cost = items[index]
 
     if total < cost:
-        invalid = QLabel("Not enough money!", window)
+        invalid = QLabel("Not enough money!")
         grid.addWidget(invalid, 2, 0)
         QTimer.singleShot(2000, invalid.deleteLater)
         return False
@@ -81,12 +78,12 @@ def update_display(total, btn):
 def update(index_list, i, btn):
     global money, food, display_food
 
-    if buy_item(items, index_list, i, money):
-        money, is_food = update_money(items, index_list, i, money)
-        update_display(money, btn)
+    if buy_item(items, index_list, i, shared_state.money):
+        shared_state.money, is_food = update_money(items, index_list, i, shared_state.money)
+        update_display(shared_state.money, btn)
         if is_food:
-            food +=1
-            display_food.setText(f"food: {food}")
+            shared_state.food +=1
+            display_food.setText(f"food: {shared_state.food}")
 
 
 #makes the buttons
@@ -99,7 +96,7 @@ def list_items(items):
 
         display_cost = abs(cost) if cost < 0 else cost
 
-        btn = QPushButton(f"{key}: ${display_cost}", window)
+        btn = QPushButton(f"{key}: ${display_cost}")
 
         btn.clicked.connect(lambda checked=False, i=i, btn=btn: update(index_list, i, btn))
 
