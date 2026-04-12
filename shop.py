@@ -1,16 +1,35 @@
 import sys
-import shared_state
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QGridLayout, QPushButton
 from PyQt6.QtCore import QTimer
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import Qt
 
 app = QApplication(sys.argv)
 
 window = QWidget()
 window.setWindowTitle("Shop")
-window.setGeometry(100, 100, 400, 300)
+window.setGeometry(100, 100, 500, 300)
 
 grid = QGridLayout()
 window.setLayout(grid)
+
+
+# shop background
+bg = QLabel(window)
+bg_pix = QPixmap("shop.png")
+
+bg_pix = bg_pix.scaled(
+    window.size(),
+    Qt.AspectRatioMode.KeepAspectRatio,
+    Qt.TransformationMode.SmoothTransformation
+)
+
+bg.setPixmap(bg_pix)
+bg.setGeometry(0, 0, 400, 300)
+bg.lower()
+
+window.showMaximized()
+
 
 funds = QLabel(f"funds: ${shared_state.money}")
 display_food = QLabel(f"food: {shared_state.food}")
