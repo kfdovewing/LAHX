@@ -97,6 +97,24 @@ class ShopPage(QWidget):
 
             row, col = divmod(i, 2)
             grid.addWidget(btn, row + 1, col)
+        grid.setContentsMargins(20, 20, 20, 100) 
+
+        # ... (your icon setups) ...
+
+        # POSITIONING FIX
+        # Email (Todo) is in the center
+        self.email.move(int(w/2 - email_bu.width()/2), int(h - 80))
+        
+        # Home is to the right
+        self.home.move(int(w - 100), int(h - 80))
+        
+        # Icon (Egg) is to the left
+        self.icon.move(40, int(h - 80))
+
+        # CRITICAL: Bring them to the very front
+        self.icon.raise_()
+        self.home.raise_()
+        self.email.raise_()
 
     def open_home(self):
         print("Home clicked in MainWindow")

@@ -5,10 +5,9 @@ class GameEngine:
     def __init__(self):
         self.timer = QTimer()
         self.timer.timeout.connect(self.tick)
-        self.timer.start(2000)  # every 2 seconds
+        self.timer.start(2000*60)  # every 2 seconds
 
     def tick(self):
-        shared_state.hunger = max(0, shared_state.hunger + 1)
-        shared_state.happiness = max(0, shared_state.happiness - 1)
+        shared_state.shared.hunger = max(0, shared_state.shared.hunger + 1)
 
-        print("tick", shared_state.hunger, shared_state.happiness)  # debug
+        print("tick", shared_state.shared.hunger) # debug
