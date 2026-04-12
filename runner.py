@@ -106,10 +106,30 @@ class run(QWidget):
         self.stack.setCurrentWidget(self.home_page)
 
     def handle_child_action_shop(self):
-        print('Signal Received: Switching to Shop Page')
-        self.screen = app.primaryScreen().availableGeometry()
-        self.showMaximized()
-        self.stack.resize(self.screen.width(),self.screen.height())
+        print('Signal Received: Updating Shop and Switching')
+        
+        # 1. Ensure we are in "Normal" mode (not Maximized)
+        self.setWindowState(Qt.WindowState.WindowNoState)
+        
+        # 2. Update the Shop UI numbers
+        self.shop_page.refresh_ui() 
+        
+        # 3. Define the dimensions
+        new_w = 400
+        new_h = 500
+        
+        # 4. Get the usable screen area
+        screen_geo = QApplication.primaryScreen().availableGeometry()
+        
+        # 5. Calculate X: Right edge of screen minus the width of our window
+        new_x = screen_geo.right() - new_w
+        new_y = 0  # Top of the screen
+        
+        # 6. Apply everything at once
+        self.setGeometry(new_x, new_y, new_w, new_h)
+        self.stack.resize(new_w, new_h)
+        
+        # 7. Finally, swap the page
         self.stack.setCurrentWidget(self.shop_page)
 
     def handle_child_action_todo(self):
@@ -117,14 +137,7 @@ class run(QWidget):
         self.setGeometry(self.screen.right()-350,0,350, 500)
         self.stack.resize(350,500)
         self.stack.setCurrentWidget(self.email_page)
-    def handle_child_action_shop(self):
-        print('Signal Received: Updating Shop and Switching')
-        
-        # Refresh the numbers before the user sees the page
-        self.shop_page.refresh_ui() 
-        
-        self.resize(400, 500) # Shop is usually bigger than the icon
-        self.stack.setCurrentWidget(self.shop_page)
+
 
 # --- START THE APP --- # Initialize App here
 main_window = run()
