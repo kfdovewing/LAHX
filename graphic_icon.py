@@ -42,6 +42,11 @@ window = QWidget()
 window.resize(w,h)
 window.move(screen_dim.right()-w,screen_dim.top())
 
+bg = QLabel(window)
+sky = QPixmap("assets/sky.png").scaled(int(w*0.7),int(h*0.7),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+bg.setPixmap(sky)
+bg.move(int(w/2-sky.width()/2),int(h/2-sky.height()/2))
+
 char = QLabel(window)
 party = QPixmap("assets/party_guy.png").scaled(int(w*0.5),int(h*0.5),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
 char.setPixmap(party)
@@ -50,9 +55,9 @@ centerx = int(w/2 - party.width()/2)
 centery = int(h/2 - party.height()/2.5)
 char.move(centerx,centery)
 
-bg = QLabel(window)
+egg = QLabel(window)
 shell = QPixmap("assets/egg2.png").scaled(w,h,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
-bg.setPixmap(shell)
+egg.setPixmap(shell)
 
 
 home = ClickableLabel(window)
@@ -63,13 +68,21 @@ home.move(centerx,int(h-(h/6)))
 email = ClickableLabel(window)
 email_bu = QPixmap("assets/email.png").scaled(int(w*0.1),int(h*0.1),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
 email.setPixmap(email_bu)
-email.move(int(w/2 - email_bu.width()/3),int(h-(h/6)))
+email.move(int(w/2 - email_bu.width()/2.5),int(h-(h/6)))
+
+shop = ClickableLabel(window)
+shop_bu = QPixmap("assets/shop.png").scaled(int(w*0.1),int(h*0.1),Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation)
+shop.setPixmap(shop_bu)
+shop.move(int(w/2+shop_bu.width()*1.5),int(h-(h/6)))
 
 def open_file():
     subprocess.Popen([sys.executable, "todolist.py"])
 
 home.clicked.connect(lambda: print("home"))
 email.clicked.connect(lambda: print("email"))
+shop.clicked.connect(lambda: print("shop"))
+# Transparent window
+window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 email.clicked.connect(open_file)
 # # Transparent window
 # window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
