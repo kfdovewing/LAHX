@@ -22,7 +22,7 @@ class run(QWidget):
         super().__init__()
         
         # 1. Window Setup
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
         w, h = 240, 280
