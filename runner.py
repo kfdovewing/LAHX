@@ -16,29 +16,6 @@ app = QApplication(sys.argv)
 engine = GameEngine()
 
 
-# buddy = ""
-# money = 0
-# food = 0
-# hunger = 0
-# happiness = 100
-
-# def cat():
-#     global buddy
-#     buddy = "assets/buddies/cat.png"
-
-# def frog():
-#     global buddy
-#     buddy = "assets/buddies/froggy.png"
-
-# def hat():
-#     global buddy
-#     buddy = "assets/buddies/hat_guy.png"
-
-# def party():
-#     global buddy
-#     buddy = "assets/buddies/party_guy.png"
-
-
 
 class run(QWidget):
     def __init__(self):
@@ -58,19 +35,19 @@ class run(QWidget):
         # self.stack.setGeometry(0, 0, 400, 400)
 
         # 3. Initialize Pages (CREATE THEM FIRST)
-        self.vars = shared_state.shared()
-        self.start_page = start()
-        self.icon = MainWindow() 
+        self.vars = shared_state.shared() #creates the variables so they don't reload
+        self.start_page = start() #choose egg start screen
+        self.icon = MainWindow() #gadget in small form on screen
         self.home_page = StatsWindow()
         self.shop_page = ShopPage()
-        self.email_page = TodoList()
+        self.list_page = TodoList() 
 
         # 4. Add to Stack (AFTER CREATING THEM)
         self.stack.addWidget(self.start_page)
         self.stack.addWidget(self.icon)
         self.stack.addWidget(self.home_page)
         self.stack.addWidget(self.shop_page)
-        self.stack.addWidget(self.email_page)
+        self.stack.addWidget(self.list_page)
         self.stack.addWidget(self.vars)
 
         self.stack.setCurrentWidget(self.start_page)
@@ -86,9 +63,9 @@ class run(QWidget):
         self.home_page.shop_clicked.connect(self.handle_child_action_shop)
         self.home_page.todo_clicked.connect(self.handle_child_action_todo)
 
-        self.email_page.action_triggered.connect(self.handle_child_action)
-        self.email_page.shop_clicked.connect(self.handle_child_action_shop)
-        self.email_page.icon_clicked.connect(self.handle_child_start)
+        self.list_page.action_triggered.connect(self.handle_child_action)
+        self.list_page.shop_clicked.connect(self.handle_child_action_shop)
+        self.list_page.icon_clicked.connect(self.handle_child_start)
 
         self.shop_page.action_triggered.connect(self.handle_child_action) # Home Icon -> Home Page
         self.shop_page.icon_clicked.connect(self.handle_child_start)     # Egg Icon -> Small Icon
@@ -150,7 +127,7 @@ class run(QWidget):
         
         self.setGeometry(new_x, 0, w, h)
         self.stack.resize(w, h)
-        self.stack.setCurrentWidget(self.email_page)
+        self.stack.setCurrentWidget(self.list_page)
 
 
 # --- START THE APP --- # Initialize App here

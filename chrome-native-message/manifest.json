@@ -1,0 +1,33 @@
+{
+    "name": "TomoBuddy",
+    "version": "1.0",
+    "description": "Read website info",
+    "manifest_version": 3,
+    "background": {
+        "service_worker": "background.js"
+    },
+    "host_permissions": [
+        "http://127.0.0.1:5000/*",
+        "http://localhost/*"
+    ],
+    "permissions": [
+        "nativeMessaging"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "icons": {
+        "128": "party1.png"
+    },
+    "content_scripts": [
+    {
+      "js": ["scripts/content.js"],
+      "matches": [
+        "https://developer.chrome.com/docs/extensions/*",
+        "https://developer.chrome.com/docs/webstore/*",
+        "https://tkaca.instructure.com/*"
+      ],
+      "all_frames": true
+    }
+    ]
+}

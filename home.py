@@ -32,10 +32,7 @@ class StatsWindow(QWidget):
         
         # Now add your buttons/bars to panel_layout instead of the window layout
         
-        
-        # Remove self.setLayout(layout) - we are using the panel instead
 
-        # self.resize(screen_dim.width(), screen_dim.height())
         w = screen_dim.width()
         h = screen_dim.height()
         bg = QLabel(self)
@@ -45,13 +42,14 @@ class StatsWindow(QWidget):
         bg.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents) # Let clicks pass through
         bg.lower() # Send to back
 
+        #character image
         self.char_label = QLabel(self)
         pet = QPixmap(shared_state.shared.buddy)
         self.char_label.setPixmap(pet)
         self.char_label.move(int(screen_dim.width()/2.3),int(screen_dim.height()/2.3))
         self.char_label.raise_()
 
-
+        #buttons to other sections
         self.icon = ClickableLabel(self)
         icon_bu = QPixmap("assets/egg.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         self.icon.setPixmap(icon_bu)
@@ -75,6 +73,9 @@ class StatsWindow(QWidget):
         self.icon.clicked.connect(self.open_icon)
         self.shop.clicked.connect(self.open_shop)
         self.email.clicked.connect(self.open_todo)
+       
+       
+       
         # --- FEED BUTTON ---
         self.feed_btn = QPushButton("Feed", self)
         self.feed_btn.clicked.connect(self.handle_feeding) # Connect to class method
@@ -95,23 +96,29 @@ class StatsWindow(QWidget):
 
         
 
-        # Update timer
+        # Update timer for hunger increase & UI
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_ui)
-        self.timer.start(200)
-        self.food_label.setText(f"Food: {shared_state.shared.food}")
+        self.timer.start(2000)
+        # self.food_label.setText(f"Food: {shared_state.shared.food}")
 
+    
+    
+    
     # Move logic OUT of __init__
+
+    #Feeding pet function
     def handle_feeding(self):
         if shared_state.shared.food > 0:
             shared_state.shared.food -= 1
             # Increase hunger bar (assuming 100 is full)
-            shared_state.shared.hunger = max(0, shared_state.shared.hunger - 30)
+            shared_state.shared.hunger = max(0, shared_state.shared.hunger - 30) #decreases hunger by 30 and ensures it's not under 0
             self.food_label.setText(f"Food: {shared_state.shared.food}")
             print(f"Fed! Remaining food: {shared_state.shared.food}")
         else:
             self.show_warning("Not enough food!")
 
+    #UI function when not enough food to feed pet
     def show_warning(self, text):
         self.invalid = QLabel(text, self)
         self.invalid.setStyleSheet("""
@@ -123,16 +130,21 @@ class StatsWindow(QWidget):
         self.invalid.show()
         QTimer.singleShot(2000, self.invalid.deleteLater)
 
+    #updates hunger bar ui
     def update_ui(self):
-        self.hunger_bar.setValue(shared_state.shared.hunger)
+        shared_state.shared.hunger += 1
+        self.hunger_bar.setValue(100-shared_state.shared.hunger)
         self.food_label.setText(f"Food: {shared_state.shared.food}")
-        
+    
+    #travel buttons
     def open_icon(self):
         print("Icon clicked in MainWindow")
         self.action_triggered.emit()
+
     def open_shop(self):
         print("Shop clicked in MainWindow")
         self.shop_clicked.emit()
+
     def open_todo(self):
         print("Todo clicked in MainWindow")
         self.todo_clicked.emit()
