@@ -11,7 +11,7 @@ class ClickableLabel(QLabel):
             event.accept()
             self.clicked.emit()
 
-
+#change
 
 class StatsWindow(QWidget):
     shop_clicked = pyqtSignal()

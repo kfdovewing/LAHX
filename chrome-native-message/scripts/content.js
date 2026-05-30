@@ -46,7 +46,6 @@ function processAssaignment(el) {
     // console.log("Captured:", el.textContent.trim());
     work.push(el.lastElementChild.textContent.trim());
     timer();
-//   console.log(doneTimer);
 }
 
 function timer(){
