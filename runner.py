@@ -16,14 +16,14 @@ import shared_state
 app = QApplication(sys.argv)
 engine = GameEngine()
 
-
+#change
 
 class run(QWidget):
     def __init__(self):
         super().__init__()
         
         # 1. Window Setup
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
         w, h = 240, 280

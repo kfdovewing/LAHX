@@ -32,7 +32,7 @@ class MainWindow(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         print(shared_state.shared.buddy)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        #self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
         w, h = 240, 280

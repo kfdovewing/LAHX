@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
     QListWidgetItem, QMessageBox
 )
 from PyQt6.QtCore import pyqtSignal, Qt
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QKeyEvent
 
 
 class ClickableLabel(QLabel):
@@ -51,6 +51,13 @@ class TodoList(QWidget):
         self.icon.clicked.connect(self.open_icon)
         self.shop.clicked.connect(self.open_shop)
         self.home.clicked.connect(self.open_home)
+     
+    def keyPressEvent(self, event: QKeyEvent):
+            if event.key() == Qt.Key.Key_Return:
+                event.accept()
+                self.add_task()
+            else:
+                super().keyPressEvent(event)
         
     def open_icon(self):
         print("Icon clicked in MainWindow")
@@ -91,6 +98,9 @@ class TodoList(QWidget):
             padding: 6px 10px;
             border-radius: 6px;
         """)
+        
+       
+
         add_btn.clicked.connect(self.add_task)
 
         input_layout.addWidget(self.task_entry)
@@ -159,8 +169,10 @@ class TodoList(QWidget):
 
             self.list_widget.addItem(item)
 
-    def add_task(self):
+    def add_task(self, info):
         text = self.task_entry.text().strip()
+        if info:
+            text = info
         if not text:
             return
 

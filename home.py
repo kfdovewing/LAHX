@@ -11,7 +11,7 @@ class ClickableLabel(QLabel):
             event.accept()
             self.clicked.emit()
 
-
+#change
 
 class StatsWindow(QWidget):
     shop_clicked = pyqtSignal()
@@ -26,9 +26,11 @@ class StatsWindow(QWidget):
         screen_dim = QApplication.primaryScreen().availableGeometry()
         # Create a small "HUD" area for the stats
         self.stats_panel = QWidget(self)
-        self.stats_panel.setGeometry(10, 0, 400, 100) # Position it in the top-left
+        self.stats_panel.setGeometry(10, 0, screen_dim.width()-30, 100) # Position it in the top-left
         
         panel_layout = QHBoxLayout(self.stats_panel)
+        panel_layout.setSpacing(20)
+
         
         # Now add your buttons/bars to panel_layout instead of the window layout
         
@@ -86,14 +88,30 @@ class StatsWindow(QWidget):
 
         # --- BARS ---
         self.hunger_bar = QProgressBar()
-        self.hunger_bar.setFixedSize(150, 20)
+        self.hunger_bar.setMinimumWidth(150) # Length in pixels
+        
+        self.energy_bar = QProgressBar()
+        self.energy_bar.setValue(100)
+        self.energy_bar.setMinimumWidth(150)
 
+        self.fun_bar = QProgressBar()
+        self.fun_bar.setValue(100)
+        self.fun_bar.setMinimumWidth(150)
+
+        self.health_bar = QProgressBar()
+        self.health_bar.setValue(100)
+        self.health_bar.setMinimumWidth(150)
 
         panel_layout.addWidget(self.feed_btn)
         panel_layout.addWidget(self.food_label)
         panel_layout.addWidget(QLabel("Hunger"))
         panel_layout.addWidget(self.hunger_bar)
-
+        panel_layout.addWidget(QLabel("Energy"))
+        panel_layout.addWidget(self.energy_bar)
+        panel_layout.addWidget(QLabel("Fun"))
+        panel_layout.addWidget(self.fun_bar)
+        panel_layout.addWidget(QLabel("Health"))
+        panel_layout.addWidget(self.health_bar)
         
 
         # Update timer for hunger increase & UI
