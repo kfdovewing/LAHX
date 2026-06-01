@@ -1,7 +1,6 @@
 import sys
-# import json
 from PyQt6.QtWidgets import QWidget, QStackedWidget, QApplication, QLabel
-from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtCore import pyqtSignal, Qt, QTimer
 
 # Assuming these are your file names
 from shop import ShopPage
@@ -74,8 +73,12 @@ class run(QWidget):
 
         self.read_assignments()
 
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.check_assignments_updated)
+        self.timer.start(2000)
 
 
+    #Adds assignments written in saved_assignments.txt to the todolist
     def read_assignments(self):
         try:
             # Open and read the file
@@ -97,6 +100,18 @@ class run(QWidget):
             return None
 
 
+    def check_assignments_updated(self):
+        try:
+
+            with open('saved_assignments.txt', 'r', encoding='utf-8') as f:
+                info = f.read()
+                if info:
+                    self.read_assignments()
+                else:
+                    pass
+
+        except FileNotFoundError:
+            return None
 
 
     def handle_child_start(self):
