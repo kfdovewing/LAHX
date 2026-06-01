@@ -1,5 +1,5 @@
 import sys
-import json
+# import json
 from PyQt6.QtWidgets import QWidget, QStackedWidget, QApplication, QLabel
 from PyQt6.QtCore import pyqtSignal, Qt
 
@@ -79,12 +79,15 @@ class run(QWidget):
     def read_assignments(self):
         try:
             # Open and read the file
-            with open('saved_assignments.json', 'r') as f:
-                info = json.load(f)
+            with open('saved_assignments.txt', 'r', encoding='utf-8') as f:
+                info = [line.strip() for line in f if line.strip()]
                 
-            print(" Successfully read the array from file!")
+            # print(" Successfully read the info from file!")
+            for task in info:
+                self.list_page.add_task(task)
             
-            self.list_page.add_task(info)
+            with open('saved_assignments.txt', "w"):
+                pass
                 
             return info
 
