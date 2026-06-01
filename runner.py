@@ -1,4 +1,5 @@
 import sys
+import json
 from PyQt6.QtWidgets import QWidget, QStackedWidget, QApplication, QLabel
 from PyQt6.QtCore import pyqtSignal, Qt
 
@@ -70,6 +71,30 @@ class run(QWidget):
         self.shop_page.action_triggered.connect(self.handle_child_action) # Home Icon -> Home Page
         self.shop_page.icon_clicked.connect(self.handle_child_start)     # Egg Icon -> Small Icon
         self.shop_page.todo_clicked.connect(self.handle_child_action_todo)
+
+        self.read_assignments()
+
+
+
+    def read_assignments(self):
+        try:
+            # Open and read the file
+            with open('saved_assignments.json', 'r') as f:
+                info = json.load(f)
+                
+            print(" Successfully read the array from file!")
+            
+            self.list_page.add_task(info)
+                
+            return info
+
+        except FileNotFoundError:
+            print("❌ Error: 'saved_array.json' does not exist yet.")
+            print("Please send data from your extension first to create the file.")
+            return None
+
+
+
 
     def handle_child_start(self):
         print('Signal Received: Updating and Switching')

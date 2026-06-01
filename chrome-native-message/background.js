@@ -1,5 +1,5 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "sendArray") {
+    if (request.action === "sendAssignment") {
         const dataToSend = request.data;
 
         // Send to your Python Flask server
@@ -8,7 +8,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ array: dataToSend })
+            body: JSON.stringify({task: dataToSend })
         })
         .then(response => {
             // Debug: See what the server actually sent back before it breaks
