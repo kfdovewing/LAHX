@@ -169,7 +169,7 @@ class TodoList(QWidget):
 
             self.list_widget.addItem(item)
 
-    def add_task(self, info):
+    def add_task(self, info = ""):
         text = self.task_entry.text().strip()
         if info:
             text = info
