@@ -132,6 +132,7 @@ class StatsWindow(QWidget):
             # Increase hunger bar (assuming 100 is full)
             shared_state.shared.hunger = max(0, shared_state.shared.hunger - 30) #decreases hunger by 30 and ensures it's not under 0
             self.food_label.setText(f"Food: {shared_state.shared.food}")
+            self.update_ui()
             print(f"Fed! Remaining food: {shared_state.shared.food}")
         else:
             self.show_warning("Not enough food!")

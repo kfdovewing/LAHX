@@ -16,6 +16,7 @@ class ClickableLabel(QLabel):
         if event.button() == Qt.MouseButton.LeftButton:
             event.accept()
             self.clicked.emit()
+        
 
 class TodoList(QWidget):
     icon_clicked = pyqtSignal()
@@ -52,13 +53,19 @@ class TodoList(QWidget):
         self.shop.clicked.connect(self.open_shop)
         self.home.clicked.connect(self.open_home)
      
+
+    #detects when certain keys pressed
     def keyPressEvent(self, event: QKeyEvent):
-            if event.key() == Qt.Key.Key_Return:
+            if event.key() == Qt.Key.Key_Return: #adds tasks using 'enter' key
                 event.accept()
                 self.add_task()
+            elif event.key() == Qt.Key.Key_Backspace or event.key() == Qt.Key.Key_Delete: #deletes tasks using 'delete' or 'backspace' key
+                event.accept()
+                self.delete_task()
             else:
                 super().keyPressEvent(event)
         
+    #switches screens
     def open_icon(self):
         print("Icon clicked in MainWindow")
         self.icon_clicked.emit()
@@ -110,10 +117,47 @@ class TodoList(QWidget):
 
         # Task list
         self.list_widget = QListWidget()
+        self.list_widget.itemChanged.connect(self.task_state_change)
         self.list_widget.setStyleSheet("""
-            background: white;
-            border: none;
-            font-size: 14px;
+            QListWidget {
+                font-size: 14px;
+                padding: 5px;
+            }
+                                       
+            QListWidget::item {
+                color: #3c3f41;
+                background-color: #ffffff;
+                /*padding: 8px;
+                margin: 4px 0px;*/
+            }
+
+            /* Hover state for items */
+            QListWidget::item:hover {
+                color: #a3a3a3;
+            }
+
+            /* Selected state (Active/Focused) */
+            QListWidget::item:selected {
+                background-color: #d1d1d1;
+                color: #3c3f41;
+                /*border: 1px solid #bfbfbf;   optional border for selection*/ 
+            }
+                                 
+                                       
+            QListWidget::indicator {
+                width: 16px;
+                height: 16px;
+                image: url(assets/unchecked_box.png);
+            }
+            /*
+            QListWidget::indicator:hover {
+                border-color: #3498db;
+                background-color: #ecf0f1;
+            }
+            */
+            QListWidget::indicator:checked {
+                image: url(assets/checked_box.png);
+            }
         """)
         main_layout.addWidget(self.list_widget)
 
@@ -149,25 +193,21 @@ class TodoList(QWidget):
 
         self.setLayout(main_layout)
 
-    def refresh_list(self):
-        self.list_widget.clear()
+    
 
-        for task in self.tasks:
-            text = task["task"]
-
-            # no checkbox anymore → use visual prefix + strikethrough effect
-            if task["done"]:
-                text = "✔ " + text
-                item = QListWidgetItem(text)
-                font = item.font()
-                font.setStrikeOut(True)
-                item.setFont(font)
-                item.setForeground(Qt.GlobalColor.darkGray)
-            else:
-                text = "○ " + text
-                item = QListWidgetItem(text)
-
-            self.list_widget.addItem(item)
+    def task_state_change(self, item):
+        font = item.font()
+        
+        if item.checkState() == Qt.CheckState.Checked:
+            font.setStrikeOut(True)
+            if item in self.tasks:
+                shared_state.shared.money += 5
+                self.tasks.remove(item)
+                print(shared_state.shared.money)
+        else:
+            font.setStrikeOut(False)
+        
+        item.setFont(font)
 
     def add_task(self, info = ""):
         text = self.task_entry.text().strip()
@@ -176,9 +216,13 @@ class TodoList(QWidget):
         if not text:
             return
 
-        self.tasks.append({"task": text, "done": False})
+        item = QListWidgetItem(text)
+        self.tasks.append(item)
+        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+        item.setCheckState(Qt.CheckState.Unchecked)
+        self.list_widget.addItem(item)
         self.task_entry.clear()
-        self.refresh_list()
+
 
     def get_selected_index(self):
         row = self.list_widget.currentRow()
@@ -187,23 +231,33 @@ class TodoList(QWidget):
             return None
         return row
 
+
     def mark_done(self):
         i = self.get_selected_index()
         if i is None:
             return
-        self.tasks[i]["done"] = True
-        self.refresh_list()
-        shared_state.shared.money += 5
-        print(shared_state.shared.money)
+        item = self.list_widget.item(i)
+        item.setCheckState(Qt.CheckState.Checked)
+
 
     def delete_task(self):
         i = self.get_selected_index()
         if i is None:
             return
 
-        if self.tasks[i]["done"]:
-            self.tasks.pop(i)
-            self.refresh_list()
+        item = self.list_widget.item(i)
+        if item.checkState() == Qt.CheckState.Checked:
+            reply = QMessageBox.question(
+                self,
+                "Delete",
+                "Delete this task?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                if item in self.tasks:
+                    self.tasks.remove(item)
+                self.list_widget.takeItem(i)
+                del item
         else:
             reply = QMessageBox.question(
                 self,
@@ -212,8 +266,10 @@ class TodoList(QWidget):
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:
-                self.tasks.pop(i)
-                self.refresh_list()
+                if item in self.tasks:
+                    self.tasks.remove(item)
+                self.list_widget.takeItem(i)
+                del item
 
     def clear_all(self):
         reply = QMessageBox.question(
