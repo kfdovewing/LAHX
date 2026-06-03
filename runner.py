@@ -120,6 +120,7 @@ class run(QWidget):
         self.icon.update_pet_display() 
         self.screen = app.primaryScreen().availableGeometry()
         self.setGeometry(self.screen.right()-240,0,240, 280)
+        self.stack.resize(240,280)
         self.stack.setCurrentWidget(self.icon)
 
     def handle_child_action(self):
