@@ -33,20 +33,21 @@ class TodoList(QWidget):
 
         self.setup_ui()
 
-        self.icon = ClickableLabel(self)
-        icon_bu = QPixmap("assets/egg.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        self.icon.setPixmap(icon_bu)
-        self.icon.move(5,0)
 
-        self.shop = ClickableLabel(self)
-        shop_bu = QPixmap("assets/shop.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        self.shop.setPixmap(shop_bu)
-        self.shop.move(int(shop_bu.width()*1.1+6),0)
+        # self.icon = ClickableLabel(self)
+        # icon_bu = QPixmap("assets/egg.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        # self.icon.setPixmap(icon_bu)
+        # self.icon.move(5,0)
 
-        self.home = ClickableLabel(self)
-        home_bu = QPixmap("assets/home_button_icon.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        self.home.setPixmap(home_bu)
-        self.home.move(int(shop_bu.width()*2.2+6),0)
+        # self.shop = ClickableLabel(self)
+        # shop_bu = QPixmap("assets/shop.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        # self.shop.setPixmap(shop_bu)
+        # self.shop.move(int(shop_bu.width()*1.1+6),0)
+
+        # self.home = ClickableLabel(self)
+        # home_bu = QPixmap("assets/home_button_icon.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        # self.home.setPixmap(home_bu)
+        # self.home.move(int(shop_bu.width()*2.2+6),0)
 
         # Connect button to emission function
         self.icon.clicked.connect(self.open_icon)
@@ -80,11 +81,66 @@ class TodoList(QWidget):
     def setup_ui(self):
         main_layout = QVBoxLayout()
 
-        # Title
-        title = QLabel("To-Do")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 24px; font-weight: bold; color: #2c3e50;")
-        main_layout.addWidget(title)
+        header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(0, 0, 0, 0)
+
+        #travel buttons layout on left of header
+        travel_btn_layout = QHBoxLayout()
+        travel_btn_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        travel_btn_layout.setSpacing(4)
+
+        buttons = []
+
+        icon_btn = QPixmap("assets/egg.png")
+        self.icon = ClickableLabel(self)
+        self.icon.setPixmap(icon_btn)
+        buttons.append(self.icon)
+        
+        shop_btn = QPixmap("assets/shop.png")
+        self.shop = ClickableLabel(self)
+        self.shop.setPixmap(shop_btn)
+        buttons.append(self.shop)
+
+        home_btn = QPixmap("assets/home_button_icon.png")
+        self.home = ClickableLabel(self)
+        self.home.setPixmap(home_btn)
+        buttons.append(self.home)
+
+        for btn in buttons:
+            btn.setScaledContents(True)
+            # btn.setAlignment(Qt.AlignmentFlag.AlignLeft)
+            btn.setFixedSize(35,35)
+            btn.setStyleSheet("border: none; background: transparent;")
+
+            travel_btn_layout.addWidget(btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        
+
+        #middle of header layout for text and more
+        middle_header_items = QHBoxLayout()
+        middle_header_items.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.title = QLabel("To-Do")
+        self.title.setStyleSheet("font-size: 24px; font-weight: bold; color: #2c3e50;")
+
+        middle_header_items.addWidget(self.title)
+
+
+        #layout for variables on right side of header
+        vars_header_items = QHBoxLayout()
+        vars_header_items.setAlignment(Qt.AlignmentFlag.AlignRight)
+
+        self.wallet = QLabel(f"Money: ${shared_state.shared.money}")
+        self.wallet.setStyleSheet("font-size: 13px; color: #050505;")        
+
+        vars_header_items.addWidget(self.wallet, alignment=Qt.AlignmentFlag.AlignBaseline)
+
+
+        #adding the sublayouts to the header
+        header_layout.addLayout(travel_btn_layout, stretch=1)
+        header_layout.addLayout(middle_header_items, stretch=1)
+        header_layout.addLayout(vars_header_items, stretch=1)
+        
+        main_layout.addLayout(header_layout)
 
         # Input row
         input_layout = QHBoxLayout()
@@ -203,6 +259,7 @@ class TodoList(QWidget):
             if item in self.tasks:
                 shared_state.shared.money += 5
                 self.tasks.remove(item)
+                self.wallet.setText(f"Money: ${shared_state.shared.money}")
                 print(shared_state.shared.money)
         else:
             font.setStrikeOut(False)
@@ -246,7 +303,7 @@ class TodoList(QWidget):
             return
 
         item = self.list_widget.item(i)
-        if item.checkState() == Qt.CheckState.Checked:
+        if item.checkState() == Qt.CheckState.Checked or (item.checkState() == Qt.CheckState.Unchecked and (item not in self.tasks)):
             reply = QMessageBox.question(
                 self,
                 "Delete",
@@ -258,7 +315,8 @@ class TodoList(QWidget):
                     self.tasks.remove(item)
                 self.list_widget.takeItem(i)
                 del item
-        else:
+
+        elif item.checkState() == Qt.CheckState.Unchecked:
             reply = QMessageBox.question(
                 self,
                 "Delete",
@@ -266,24 +324,18 @@ class TodoList(QWidget):
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:
-                if item in self.tasks:
-                    self.tasks.remove(item)
+                self.tasks.remove(item)
                 self.list_widget.takeItem(i)
                 del item
+
 
     def clear_all(self):
         reply = QMessageBox.question(
             self,
             "Clear",
-            "Delete all tasks? You will not get money for the tasks you did not complete.",
+            "Delete all tasks?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
         if reply == QMessageBox.StandardButton.Yes:
-            completed = int(sum(1 for t in self.tasks if t["done"]))
-            not_completed = len(self.tasks) - completed
-            print(shared_state.shared.money)
             self.tasks.clear()
-            self.refresh_list()
-
-
-#fdksjfldsa
+            self.list_widget.clear()
