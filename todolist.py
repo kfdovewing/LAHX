@@ -33,22 +33,6 @@ class TodoList(QWidget):
 
         self.setup_ui()
 
-
-        # self.icon = ClickableLabel(self)
-        # icon_bu = QPixmap("assets/egg.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        # self.icon.setPixmap(icon_bu)
-        # self.icon.move(5,0)
-
-        # self.shop = ClickableLabel(self)
-        # shop_bu = QPixmap("assets/shop.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        # self.shop.setPixmap(shop_bu)
-        # self.shop.move(int(shop_bu.width()*1.1+6),0)
-
-        # self.home = ClickableLabel(self)
-        # home_bu = QPixmap("assets/home_button_icon.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        # self.home.setPixmap(home_bu)
-        # self.home.move(int(shop_bu.width()*2.2+6),0)
-
         # Connect button to emission function
         self.icon.clicked.connect(self.open_icon)
         self.shop.clicked.connect(self.open_shop)
