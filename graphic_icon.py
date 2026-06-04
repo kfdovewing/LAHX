@@ -8,7 +8,8 @@ from PyQt6.QtWidgets import (
     QWidget,
     QGridLayout,
     QVBoxLayout, 
-    QHBoxLayout
+    QHBoxLayout,
+    QSizePolicy
 )
 import subprocess
 from PyQt6.QtWidgets import QWidget, QLabel, QApplication
@@ -44,9 +45,9 @@ class MainWindow(QWidget):
         layout = QGridLayout(self)
 
         # 1. Background sky
-        sky = QPixmap("assets/sky.png")
+        bg_image = QPixmap("assets/sky.png")
         self.bg = QLabel(self)
-        self.bg.setPixmap(sky)
+        self.bg.setPixmap(bg_image)
         self.bg.setScaledContents(True)
         self.bg.setFixedSize(150, 140)
 
