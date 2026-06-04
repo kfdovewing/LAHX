@@ -4,10 +4,11 @@ import shared_state
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QListWidget,
-    QListWidgetItem, QMessageBox
+    QListWidgetItem, QMessageBox, QCheckBox
 )
-from PyQt6.QtCore import pyqtSignal, Qt
-from PyQt6.QtGui import QPixmap, QKeyEvent
+from PyQt6.QtCore import pyqtSignal, Qt, QRect, QSize
+from PyQt6.QtGui import QPixmap, QKeyEvent, QFont
+
 
 
 class ClickableLabel(QLabel):
@@ -17,6 +18,94 @@ class ClickableLabel(QLabel):
             event.accept()
             self.clicked.emit()
         
+
+
+class CustomListWidget(QListWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setDragDropMode(QListWidget.DragDropMode.InternalMove)
+        self.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
+        # self.setIconSize(iconSize()) 
+
+        # Keep layout direction standard (Left to Right) so text behaves normally
+        self.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
+
+        # Use QSS Subcontrols to explicitly position the icon on the right
+        self.setStyleSheet("""
+             QListWidget {
+                 font-size: 14px;
+                 padding: 5px;
+             }
+                                       
+             QListWidget::item {
+                 color: #3c3f41;
+                 background-color: #ffffff;
+                 padding: 8px;
+                 /*margin: 4px 0px;*/
+                 border-bottom: 1px solid #eee;
+             }
+
+             /* Hover state for items */
+             QListWidget::item:hover {
+                 color: #a3a3a3;
+             }
+
+             /* Selected state (Active/Focused) */
+             QListWidget::item:selected {
+                 background-color: #d1d1d1;
+                 color: #3c3f41;
+                 /*border: 1px solid #bfbfbf;   optional border for selection*/ 
+             }                  
+                                       
+             QCheckBox::indicator {
+                 width: 16px;
+                 height: 16px;
+                 image: url(assets/unchecked_box.png);
+             }
+             /*
+             QListWidget::indicator:hover {
+                 border-color: #3498db;
+                 background-color: #ecf0f1;
+             }
+             */
+             QCheckBox::indicator:checked {
+                 image: url(assets/checked_box.png);
+             }
+         """)
+
+
+    def get_handle_rect(self, item):
+        """Calculates the handle rectangle on the right side using standard LTR coordinate space."""
+        item_rect = self.visualItemRect(item)
+        if item_rect.isEmpty():
+            return QRect()
+        
+        icon_width =  24+5  # Icon size + padding
+        
+        # Calculate X position sitting right against the inner right margin
+        handle_x = item_rect.x() + item_rect.width() - icon_width -5
+        
+        return QRect(handle_x, item_rect.y(), icon_width, item_rect.height())
+
+    def mousePressEvent(self, event):
+        item = self.itemAt(event.position().toPoint())
+        if item:
+            handle_rect = self.get_handle_rect(item)
+            
+            # Check if click coordinates fall inside the right handle box
+            if handle_rect.contains(event.position().toPoint()):
+                item.setData(Qt.ItemDataRole.UserRole, True)   # Clicked the handle!
+            else:
+                item.setData(Qt.ItemDataRole.UserRole, False)  # Clicked the text
+                
+        super().mousePressEvent(event)
+
+    def startDrag(self, supportedActions):
+        item = self.currentItem()
+        if item and item.data(Qt.ItemDataRole.UserRole) is True:
+            super().startDrag(supportedActions)
+
+
 
 class TodoList(QWidget):
     icon_clicked = pyqtSignal()
@@ -37,6 +126,7 @@ class TodoList(QWidget):
         self.icon.clicked.connect(self.open_icon)
         self.shop.clicked.connect(self.open_shop)
         self.home.clicked.connect(self.open_home)
+
      
 
     #detects when certain keys pressed
@@ -60,6 +150,8 @@ class TodoList(QWidget):
     def open_home(self):
         print("Todo clicked in MainWindow")
         self.action_triggered.emit()
+
+
 
 
     def setup_ui(self):
@@ -156,49 +248,8 @@ class TodoList(QWidget):
         main_layout.addLayout(input_layout)
 
         # Task list
-        self.list_widget = QListWidget()
-        self.list_widget.itemChanged.connect(self.task_state_change)
-        self.list_widget.setStyleSheet("""
-            QListWidget {
-                font-size: 14px;
-                padding: 5px;
-            }
-                                       
-            QListWidget::item {
-                color: #3c3f41;
-                background-color: #ffffff;
-                /*padding: 8px;
-                margin: 4px 0px;*/
-            }
+        self.list_widget = CustomListWidget()
 
-            /* Hover state for items */
-            QListWidget::item:hover {
-                color: #a3a3a3;
-            }
-
-            /* Selected state (Active/Focused) */
-            QListWidget::item:selected {
-                background-color: #d1d1d1;
-                color: #3c3f41;
-                /*border: 1px solid #bfbfbf;   optional border for selection*/ 
-            }
-                                 
-                                       
-            QListWidget::indicator {
-                width: 16px;
-                height: 16px;
-                image: url(assets/unchecked_box.png);
-            }
-            /*
-            QListWidget::indicator:hover {
-                border-color: #3498db;
-                background-color: #ecf0f1;
-            }
-            */
-            QListWidget::indicator:checked {
-                image: url(assets/checked_box.png);
-            }
-        """)
         main_layout.addWidget(self.list_widget)
 
         # Buttons
@@ -234,21 +285,22 @@ class TodoList(QWidget):
         self.setLayout(main_layout)
 
     
+    
 
-    def task_state_change(self, item):
-        font = item.font()
+    def task_state_change(self, item, text, state):
+        font = text.font()
         
-        if item.checkState() == Qt.CheckState.Checked:
+        if state == 2:
             font.setStrikeOut(True)
             if item in self.tasks:
                 shared_state.shared.money += 5
                 self.tasks.remove(item)
                 self.wallet.setText(f"Money: ${shared_state.shared.money}")
                 print(shared_state.shared.money)
-        else:
+        elif state == 0:
             font.setStrikeOut(False)
         
-        item.setFont(font)
+        text.setFont(font)
 
     def add_task(self, info = ""):
         text = self.task_entry.text().strip()
@@ -257,12 +309,40 @@ class TodoList(QWidget):
         if not text:
             return
 
-        item = QListWidgetItem(text)
-        self.tasks.append(item)
-        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-        item.setCheckState(Qt.CheckState.Unchecked)
+        item = QListWidgetItem(self.list_widget)
+        item.setSizeHint(QSize(200, 40))
+
+        task_widget = QWidget()
+        task_layout = QHBoxLayout(task_widget)
+        task_layout.setContentsMargins(5, 0, 0, 0)
+        task_layout.setSpacing(16)
+
+        text_label = QLabel(f" {text} ")
+        text_size = text_label.font()
+        text_size.setPointSize(15)
+        text_label.setFont(text_size)
+
+        task_checkbox = QCheckBox()
+        task_checkbox.stateChanged.connect(
+            lambda state: self.task_state_change(task_widget, text_label, state)
+        )
+
+        icon_label = QLabel()
+        icon_label.setPixmap(QPixmap("assets/grab_handle.png").scaled(24, 24))
+        icon_label.setScaledContents(True)
+        
+        
+        task_layout.addWidget(task_checkbox)
+        task_layout.addWidget(text_label)
+        task_layout.addStretch() # Pushes the icon all the way to the right side
+        task_layout.addWidget(icon_label)
+
+        self.tasks.append(task_widget)
+        
         self.list_widget.addItem(item)
+        self.list_widget.setItemWidget(item, task_widget)
         self.task_entry.clear()
+
 
 
     def get_selected_index(self):
