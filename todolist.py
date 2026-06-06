@@ -25,12 +25,10 @@ class CustomListWidget(QListWidget):
         super().__init__(parent)
         self.setDragDropMode(QListWidget.DragDropMode.InternalMove)
         self.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
-        # self.setIconSize(iconSize()) 
 
         # Keep layout direction standard (Left to Right) so text behaves normally
         self.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
-        # Use QSS Subcontrols to explicitly position the icon on the right
         self.setStyleSheet("""
              QListWidget {
                  font-size: 14px;
@@ -83,22 +81,38 @@ class CustomListWidget(QListWidget):
         icon_width =  24+5  # Icon size + padding
         
         # Calculate X position sitting right against the inner right margin
+        #  "-5" is to get the handle box off the edge of the task wall
         handle_x = item_rect.x() + item_rect.width() - icon_width -5
         
         return QRect(handle_x, item_rect.y(), icon_width, item_rect.height())
 
+
     def mousePressEvent(self, event):
         item = self.itemAt(event.position().toPoint())
         if item:
+
             handle_rect = self.get_handle_rect(item)
             
             # Check if click coordinates fall inside the right handle box
-            if handle_rect.contains(event.position().toPoint()):
-                item.setData(Qt.ItemDataRole.UserRole, True)   # Clicked the handle!
+            if not handle_rect.contains(event.position().toPoint()):
+                item.setData(Qt.ItemDataRole.UserRole, False)   # Clicked the text
+                
+                if item.isSelected():
+                    event.accept()
+                    self.clearSelection()
+                    return
+            
             else:
-                item.setData(Qt.ItemDataRole.UserRole, False)  # Clicked the text
+                item.setData(Qt.ItemDataRole.UserRole, True)  # Clicked the Handle
+
+
+        if not item:
+            # Clicked on empty background space -> drop all selections
+            self.clearSelection()
+        
                 
         super().mousePressEvent(event)
+
 
     def startDrag(self, supportedActions):
         item = self.currentItem()
@@ -127,7 +141,6 @@ class TodoList(QWidget):
         self.shop.clicked.connect(self.open_shop)
         self.home.clicked.connect(self.open_home)
 
-     
 
     #detects when certain keys pressed
     def keyPressEvent(self, event: QKeyEvent):
@@ -184,7 +197,6 @@ class TodoList(QWidget):
 
         for btn in buttons:
             btn.setScaledContents(True)
-            # btn.setAlignment(Qt.AlignmentFlag.AlignLeft)
             btn.setFixedSize(35,35)
             btn.setStyleSheet("border: none; background: transparent;")
 
@@ -272,7 +284,6 @@ class TodoList(QWidget):
                 border-radius: 6px;
             """)
 
-        done_btn.clicked.connect(self.mark_done)
         delete_btn.clicked.connect(self.delete_task)
         clear_btn.clicked.connect(self.clear_all)
 
@@ -290,27 +301,40 @@ class TodoList(QWidget):
     def task_state_change(self, item, text, state):
         font = text.font()
         
-        if state == 2:
+        if state == 2: #item checked
             font.setStrikeOut(True)
             if item in self.tasks:
                 shared_state.shared.money += 5
                 self.tasks.remove(item)
                 self.wallet.setText(f"Money: ${shared_state.shared.money}")
                 print(shared_state.shared.money)
-        elif state == 0:
+
+        elif state == 0: #item unchecked
             font.setStrikeOut(False)
         
         text.setFont(font)
+
 
     def add_task(self, info = ""):
         text = self.task_entry.text().strip()
         if info:
             text = info
+            custom_task = self.create_task_widget(text, False)
+        elif not info:
+            custom_task = self.create_task_widget(text, True)
+
         if not text:
             return
 
-        item = QListWidgetItem(self.list_widget)
+        item = QListWidgetItem(self.list_widget) #placeholder list item
         item.setSizeHint(QSize(200, 40))
+        
+        self.list_widget.addItem(item)
+        self.list_widget.setItemWidget(item, custom_task)
+        self.task_entry.clear()
+
+
+    def create_task_widget(self, text, own):
 
         task_widget = QWidget()
         task_layout = QHBoxLayout(task_widget)
@@ -318,9 +342,12 @@ class TodoList(QWidget):
         task_layout.setSpacing(16)
 
         text_label = QLabel(f" {text} ")
-        text_size = text_label.font()
-        text_size.setPointSize(15)
-        text_label.setFont(text_size)
+        text_font = text_label.font()
+        text_font.setPointSize(15)
+        text_label.setFont(text_font)
+
+        if own:
+            text_label.setStyleSheet("color: #3B5DF7;")
 
         task_checkbox = QCheckBox()
         task_checkbox.stateChanged.connect(
@@ -338,11 +365,8 @@ class TodoList(QWidget):
         task_layout.addWidget(icon_label)
 
         self.tasks.append(task_widget)
-        
-        self.list_widget.addItem(item)
-        self.list_widget.setItemWidget(item, task_widget)
-        self.task_entry.clear()
 
+        return task_widget
 
 
     def get_selected_index(self):
@@ -351,14 +375,6 @@ class TodoList(QWidget):
             QMessageBox.information(self, "Select Task", "Pick a task first.")
             return None
         return row
-
-
-    def mark_done(self):
-        i = self.get_selected_index()
-        if i is None:
-            return
-        item = self.list_widget.item(i)
-        item.setCheckState(Qt.CheckState.Checked)
 
 
     def delete_task(self):
