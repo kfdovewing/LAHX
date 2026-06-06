@@ -4,10 +4,10 @@ import shared_state
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QListWidget,
-    QListWidgetItem, QMessageBox, QCheckBox
+    QListWidgetItem, QMessageBox, QCheckBox, QSizePolicy, QScrollArea
 )
 from PyQt6.QtCore import pyqtSignal, Qt, QRect, QSize
-from PyQt6.QtGui import QPixmap, QKeyEvent, QFont
+from PyQt6.QtGui import QPixmap, QKeyEvent, QFontMetrics
 
 
 
@@ -25,13 +25,13 @@ class CustomListWidget(QListWidget):
         super().__init__(parent)
         self.setDragDropMode(QListWidget.DragDropMode.InternalMove)
         self.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
-
+        # self.setWordWrap(True)
         # Keep layout direction standard (Left to Right) so text behaves normally
         self.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
         self.setStyleSheet("""
              QListWidget {
-                 font-size: 14px;
+                 font-size: 15px;
                  padding: 5px;
              }
                                        
@@ -119,6 +119,96 @@ class CustomListWidget(QListWidget):
         if item and item.data(Qt.ItemDataRole.UserRole) is True:
             super().startDrag(supportedActions)
 
+    
+
+
+class CreateTaskWiget(QWidget):
+    def __init__(self, text, own, item):
+        super().__init__()
+
+        main_widget = TodoList()
+        
+
+        task_layout = QHBoxLayout(self)
+        task_layout.setContentsMargins(5, 0, 0, 0)
+        task_layout.setSpacing(16)
+
+
+        # 1. Create a QScrollArea
+        scroll_area = QScrollArea()
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: 0px;
+                background: transparent;
+            }
+            QScrollArea > QWidget > QWidget {
+                border: none;
+                background: transparent;
+            }
+            /* Completely hide the horizontal scrollbar track, buttons, and handles */
+            QScrollBar:horizontal {
+                height: 0px;
+                background: transparent;
+            }
+            QScrollBar::handle:horizontal, 
+            QScrollBar::add-line:horizontal, 
+            QScrollBar::sub-line:horizontal {
+                background: none;
+                width: 0px;
+            }
+        """)
+        
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+    
+        self.task_text = text
+        self.text_label = QLabel(f" {self.task_text} ")
+        self.text_font = self.text_label.font()
+        self.text_font.setPointSize(15)
+        self.text_label.setFont(self.text_font)
+        self.text_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+
+        if own:
+            self.text_label.setStyleSheet("color: #3B5DF7;")
+
+        scroll_area.setWidget(self.text_label)
+
+
+
+        self.task_checkbox = QCheckBox()
+        self.task_checkbox.stateChanged.connect(
+            lambda state: main_widget.task_state_change(self, self.text_label, state)
+        )
+
+        icon_label = QLabel()
+        icon_label.setPixmap(QPixmap("assets/grab_handle.png").scaled(24, 24))
+        icon_label.setScaledContents(True)
+        icon_label.setFixedSize(20, 20)
+        
+        
+        task_layout.addWidget(self.task_checkbox, alignment=Qt.AlignmentFlag.AlignVCenter)
+        task_layout.addWidget(scroll_area, stretch=1, alignment=Qt.AlignmentFlag.AlignVCenter)
+        task_layout.addStretch() # Pushes the icon all the way to the right side
+        task_layout.addWidget(icon_label, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+        main_widget.tasks.append(self)
+
+    def calculate_required_height(self, total_width):
+        """Manually calculates pixel bounds to ensure text is never clipped."""
+        # Account for layout's left and right margins (10 + 10 = 20)
+        text_width_limit = total_width - 20
+        
+        #Measure wrapped description height
+        metrics_desc = QFontMetrics(self.text_font)
+        desc_rect = metrics_desc.boundingRect(0, 0, text_width_limit, 5000, Qt.TextFlag.TextWordWrap, self.task_text)
+        
+        # Total height = Top Margin(10) + Title + Spacing(4) + Description + Bottom Margin(10)
+        # We append an extra buffer (+4) to prevent any text descenders (like 'g', 'j', 'y') from clipping
+        total_height = 10 + desc_rect.height() + 10 + 4
+        return total_height
+
+
 
 
 class TodoList(QWidget):
@@ -134,6 +224,8 @@ class TodoList(QWidget):
         w = 350
         h = 500 
 
+        self.setGeometry(100, 100, 400, 350)
+        
         self.setup_ui()
 
         # Connect button to emission function
@@ -295,8 +387,39 @@ class TodoList(QWidget):
 
         self.setLayout(main_layout)
 
+
+
+
+
+    # fixes the task item text to wrap but chose to use scroll instead
+    # def update_item_sizes(self):
+    #     # Calculate the exact usable width inside the list box (accounts for borders/scrollbars)
+    #     # We subtract an extra margin so text doesn't touch the scrollbar boundary
+    #     usable_width = self.list_widget.viewport().width() - 20 
+
+    #     if usable_width <= 50:
+    #         return
+        
+    #     for i in range(self.list_widget.count()):
+    #         item = self.list_widget.item(i)
+    #         widget = self.list_widget.itemWidget(item)
+            
+    #         if isinstance(widget, CreateTaskWiget):
+    #             widget.resize(usable_width, widget.height())
+    #             # Calculate the exact pixel height the text requires at this current width
+    #             #height = height of item + padding on top & bottom
+    #             calculated_height = widget.calculate_required_height(usable_width)+20
+                
+    #             # Apply the explicit size hint to prevent any cutting off on top/bottom
+    #             item.setSizeHint(QSize(usable_width, calculated_height))
     
-    
+
+
+
+
+
+
+
 
     def task_state_change(self, item, text, state):
         font = text.font()
@@ -317,56 +440,24 @@ class TodoList(QWidget):
 
     def add_task(self, info = ""):
         text = self.task_entry.text().strip()
+
+        item = QListWidgetItem() #placeholder list item
+        item.setSizeHint(QSize(200, 45))
+
         if info:
             text = info
-            custom_task = self.create_task_widget(text, False)
+            custom_task = CreateTaskWiget(text, False, item)
+
         elif not info:
-            custom_task = self.create_task_widget(text, True)
+            custom_task = CreateTaskWiget(text, True, item)
 
         if not text:
             return
 
-        item = QListWidgetItem(self.list_widget) #placeholder list item
-        item.setSizeHint(QSize(200, 40))
         
         self.list_widget.addItem(item)
         self.list_widget.setItemWidget(item, custom_task)
         self.task_entry.clear()
-
-
-    def create_task_widget(self, text, own):
-
-        task_widget = QWidget()
-        task_layout = QHBoxLayout(task_widget)
-        task_layout.setContentsMargins(5, 0, 0, 0)
-        task_layout.setSpacing(16)
-
-        text_label = QLabel(f" {text} ")
-        text_font = text_label.font()
-        text_font.setPointSize(15)
-        text_label.setFont(text_font)
-
-        if own:
-            text_label.setStyleSheet("color: #3B5DF7;")
-
-        task_checkbox = QCheckBox()
-        task_checkbox.stateChanged.connect(
-            lambda state: self.task_state_change(task_widget, text_label, state)
-        )
-
-        icon_label = QLabel()
-        icon_label.setPixmap(QPixmap("assets/grab_handle.png").scaled(24, 24))
-        icon_label.setScaledContents(True)
-        
-        
-        task_layout.addWidget(task_checkbox)
-        task_layout.addWidget(text_label)
-        task_layout.addStretch() # Pushes the icon all the way to the right side
-        task_layout.addWidget(icon_label)
-
-        self.tasks.append(task_widget)
-
-        return task_widget
 
 
     def get_selected_index(self):
@@ -419,3 +510,10 @@ class TodoList(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             self.tasks.clear()
             self.list_widget.clear()
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = TodoList()
+    window.show()
+    sys.exit(app.exec())

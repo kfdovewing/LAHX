@@ -170,7 +170,9 @@ class run(QWidget):
         new_x = screen_geo.right() - w
         
         self.setGeometry(new_x, 0, w, h)
+        # self.setGeometry(100, 100, 400, 350)
         self.stack.resize(w, h)
+        # self.stack.resize(400,350)
         self.stack.setCurrentWidget(self.list_page)
 
 
