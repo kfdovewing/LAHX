@@ -4,7 +4,7 @@ import shared_state
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QListWidget,
-    QListWidgetItem, QMessageBox, QCheckBox, QSizePolicy, QScrollArea
+    QListWidgetItem, QMessageBox, QCheckBox, QSizePolicy, QScrollArea, QStackedWidget
 )
 from PyQt6.QtCore import pyqtSignal, Qt, QRect, QSize
 from PyQt6.QtGui import QPixmap, QKeyEvent, QFontMetrics
@@ -25,7 +25,6 @@ class CustomListWidget(QListWidget):
         super().__init__(parent)
         self.setDragDropMode(QListWidget.DragDropMode.InternalMove)
         self.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
-        # self.setWordWrap(True)
         # Keep layout direction standard (Left to Right) so text behaves normally
         self.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
@@ -70,6 +69,12 @@ class CustomListWidget(QListWidget):
                  image: url(assets/checked_box.png);
              }
          """)
+        
+
+
+    # def load_tasks(self):
+    #     for task in self.task_list:
+    #         TodoList.add_task(task)
 
 
     def get_handle_rect(self, item):
@@ -124,10 +129,7 @@ class CustomListWidget(QListWidget):
 
 class CreateTaskWiget(QWidget):
     def __init__(self, text, own, item):
-        super().__init__()
-
-        main_widget = TodoList()
-        
+        super().__init__()        
 
         task_layout = QHBoxLayout(self)
         task_layout.setContentsMargins(5, 0, 0, 0)
@@ -172,13 +174,14 @@ class CreateTaskWiget(QWidget):
         if own:
             self.text_label.setStyleSheet("color: #3B5DF7;")
 
+
         scroll_area.setWidget(self.text_label)
 
 
 
         self.task_checkbox = QCheckBox()
         self.task_checkbox.stateChanged.connect(
-            lambda state: main_widget.task_state_change(self, self.text_label, state)
+            lambda state: CreatePage.task_state_change(self, self.text_label, state)
         )
 
         icon_label = QLabel()
@@ -192,41 +195,40 @@ class CreateTaskWiget(QWidget):
         task_layout.addStretch() # Pushes the icon all the way to the right side
         task_layout.addWidget(icon_label, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
-        main_widget.tasks.append(self)
 
-    def calculate_required_height(self, total_width):
-        """Manually calculates pixel bounds to ensure text is never clipped."""
-        # Account for layout's left and right margins (10 + 10 = 20)
-        text_width_limit = total_width - 20
+
+
+    # def calculate_required_height(self, total_width):
+    #     """Manually calculates pixel bounds to ensure text is never clipped."""
+    #     # Account for layout's left and right margins (10 + 10 = 20)
+    #     text_width_limit = total_width - 20
         
-        #Measure wrapped description height
-        metrics_desc = QFontMetrics(self.text_font)
-        desc_rect = metrics_desc.boundingRect(0, 0, text_width_limit, 5000, Qt.TextFlag.TextWordWrap, self.task_text)
+    #     #Measure wrapped description height
+    #     metrics_desc = QFontMetrics(self.text_font)
+    #     desc_rect = metrics_desc.boundingRect(0, 0, text_width_limit, 5000, Qt.TextFlag.TextWordWrap, self.task_text)
         
-        # Total height = Top Margin(10) + Title + Spacing(4) + Description + Bottom Margin(10)
-        # We append an extra buffer (+4) to prevent any text descenders (like 'g', 'j', 'y') from clipping
-        total_height = 10 + desc_rect.height() + 10 + 4
-        return total_height
+    #     # Total height = Top Margin(10) + Title + Spacing(4) + Description + Bottom Margin(10)
+    #     # We append an extra buffer (+4) to prevent any text descenders (like 'g', 'j', 'y') from clipping
+    #     total_height = 10 + desc_rect.height() + 10 + 4
+    #     return total_height
 
 
-
-
-class TodoList(QWidget):
-    icon_clicked = pyqtSignal()
-    shop_clicked = pyqtSignal()
-    action_triggered = pyqtSignal()
-    def __init__(self, parent = None):
+class CreatePage(QWidget):
+    def __init__(self, page_name, parent):
         super().__init__(parent)
-        self.setWindowTitle("To-Do List")
-        self.money = 0
+        self.stack = parent
+
         self.tasks = []
+        self.not_earnable_tasks = []
+        
 
         w = 350
         h = 500 
 
-        self.setGeometry(100, 100, 400, 350)
         
-        self.setup_ui()
+        #change value based on page user last on
+
+        self.setup_ui(page_name)
 
         # Connect button to emission function
         self.icon.clicked.connect(self.open_icon)
@@ -236,14 +238,14 @@ class TodoList(QWidget):
 
     #detects when certain keys pressed
     def keyPressEvent(self, event: QKeyEvent):
-            if event.key() == Qt.Key.Key_Return: #adds tasks using 'enter' key
-                event.accept()
-                self.add_task()
-            elif event.key() == Qt.Key.Key_Backspace or event.key() == Qt.Key.Key_Delete: #deletes tasks using 'delete' or 'backspace' key
-                event.accept()
-                self.delete_task()
-            else:
-                super().keyPressEvent(event)
+        if event.key() == Qt.Key.Key_Return: #adds tasks using 'enter' key
+            event.accept()
+            self.add_task()
+        elif event.key() == Qt.Key.Key_Backspace or event.key() == Qt.Key.Key_Delete: #deletes tasks using 'delete' or 'backspace' key
+            event.accept()
+            self.delete_task()
+        else:
+            super().keyPressEvent(event)
         
     #switches screens
     def open_icon(self):
@@ -258,8 +260,7 @@ class TodoList(QWidget):
 
 
 
-
-    def setup_ui(self):
+    def setup_ui(self, page_name):
         main_layout = QVBoxLayout()
 
         header_layout = QHBoxLayout()
@@ -299,7 +300,7 @@ class TodoList(QWidget):
         middle_header_items = QHBoxLayout()
         middle_header_items.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.title = QLabel("To-Do")
+        self.title = QLabel(f"To-Do: {page_name}")
         self.title.setStyleSheet("font-size: 24px; font-weight: bold; color: #2c3e50;")
 
         middle_header_items.addWidget(self.title)
@@ -353,20 +354,19 @@ class TodoList(QWidget):
 
         # Task list
         self.list_widget = CustomListWidget()
-
         main_layout.addWidget(self.list_widget)
 
         # Buttons
         btn_layout = QHBoxLayout()
 
-        done_btn = QPushButton("Done")
-        delete_btn = QPushButton("Delete")
+        back_arrow = QPushButton("<")
+        forward_arrow = QPushButton(">")
         clear_btn = QPushButton("Clear")
 
         for btn, color in [
-            (done_btn, "#2ecc71"),
-            (delete_btn, "#e74c3c"),
-            (clear_btn, "#7f8c8d")
+            (back_arrow, "#707070"),
+            (forward_arrow, "#707070"),
+            (clear_btn, "#4a85bd")
         ]:
             btn.setStyleSheet(f"""
                 background-color: {color};
@@ -376,47 +376,18 @@ class TodoList(QWidget):
                 border-radius: 6px;
             """)
 
-        delete_btn.clicked.connect(self.delete_task)
         clear_btn.clicked.connect(self.clear_all)
+        back_arrow.clicked.connect(lambda: self.stack.page_back())
+        forward_arrow.clicked.connect(lambda: self.stack.page_forward())
 
-        btn_layout.addWidget(done_btn)
-        btn_layout.addWidget(delete_btn)
         btn_layout.addWidget(clear_btn)
+        btn_layout.addStretch(1)
+        btn_layout.addWidget(back_arrow)
+        btn_layout.addWidget(forward_arrow)
 
         main_layout.addLayout(btn_layout)
 
         self.setLayout(main_layout)
-
-
-
-
-
-    # fixes the task item text to wrap but chose to use scroll instead
-    # def update_item_sizes(self):
-    #     # Calculate the exact usable width inside the list box (accounts for borders/scrollbars)
-    #     # We subtract an extra margin so text doesn't touch the scrollbar boundary
-    #     usable_width = self.list_widget.viewport().width() - 20 
-
-    #     if usable_width <= 50:
-    #         return
-        
-    #     for i in range(self.list_widget.count()):
-    #         item = self.list_widget.item(i)
-    #         widget = self.list_widget.itemWidget(item)
-            
-    #         if isinstance(widget, CreateTaskWiget):
-    #             widget.resize(usable_width, widget.height())
-    #             # Calculate the exact pixel height the text requires at this current width
-    #             #height = height of item + padding on top & bottom
-    #             calculated_height = widget.calculate_required_height(usable_width)+20
-                
-    #             # Apply the explicit size hint to prevent any cutting off on top/bottom
-    #             item.setSizeHint(QSize(usable_width, calculated_height))
-    
-
-
-
-
 
 
 
@@ -426,9 +397,10 @@ class TodoList(QWidget):
         
         if state == 2: #item checked
             font.setStrikeOut(True)
-            if item in self.tasks:
+
+            if item not in self.not_earnable_tasks:
                 shared_state.shared.money += 5
-                self.tasks.remove(item)
+                self.not_earnable_tasks.append(item)
                 self.wallet.setText(f"Money: ${shared_state.shared.money}")
                 print(shared_state.shared.money)
 
@@ -448,16 +420,17 @@ class TodoList(QWidget):
             text = info
             custom_task = CreateTaskWiget(text, False, item)
 
-        elif not info:
+
+        else:
             custom_task = CreateTaskWiget(text, True, item)
+            self.task_entry.clear()
 
         if not text:
             return
-
         
         self.list_widget.addItem(item)
         self.list_widget.setItemWidget(item, custom_task)
-        self.task_entry.clear()
+            
 
 
     def get_selected_index(self):
@@ -510,6 +483,55 @@ class TodoList(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             self.tasks.clear()
             self.list_widget.clear()
+
+
+class TodoList(QStackedWidget):
+    icon_clicked = pyqtSignal()
+    shop_clicked = pyqtSignal()
+    action_triggered = pyqtSignal()
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        self.setWindowTitle("To-Do List")
+        self.setGeometry(100, 100, 400, 350)
+
+        self.list_pages = []
+        self.school_page = CreatePage("School", parent=self)
+        self.list_pages.append(self.school_page)
+        self.own_page = CreatePage("Own", parent=self)
+        self.list_pages.append(self.own_page)
+
+        for page in self.list_pages:
+            self.addWidget(page)
+
+        self.page_num = 0
+        self.setCurrentIndex(self.page_num)
+
+    
+    def page_back(self):
+        if self.page_num > 0:
+            self.page_num -= 1
+            self.change_page(self.page_num)
+        
+        else:
+            print("no previous page")
+    
+    def page_forward(self):
+        if self.page_num < (len(self.list_pages)-1):
+            self.page_num += 1
+            self.change_page(self.page_num)
+        
+        else:
+            print("no more pages")
+   
+    def change_page(self, page_num):
+        self.setCurrentIndex(page_num)
+
+    
+    def receive_task(self, info):
+        self.school_page.add_task(info)
+
+
+
 
 
 if __name__ == "__main__":

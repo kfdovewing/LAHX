@@ -87,7 +87,7 @@ class run(QWidget):
                 
             # print(" Successfully read the info from file!")
             for task in info:
-                self.list_page.add_task(task)
+                self.list_page.receive_task(task)
             
             with open('saved_assignments.txt', "w"):
                 pass
