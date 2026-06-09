@@ -72,11 +72,6 @@ class CustomListWidget(QListWidget):
         
 
 
-    # def load_tasks(self):
-    #     for task in self.task_list:
-    #         TodoList.add_task(task)
-
-
     def get_handle_rect(self, item):
         """Calculates the handle rectangle on the right side using standard LTR coordinate space."""
         item_rect = self.visualItemRect(item)
@@ -128,12 +123,12 @@ class CustomListWidget(QListWidget):
 
 
 class CreateTaskWiget(QWidget):
-    def __init__(self, text, own, item):
+    def __init__(self, current_page, text, own):
         super().__init__()        
-
+        self.current_page = current_page
         task_layout = QHBoxLayout(self)
+        task_layout.setSpacing(5)
         task_layout.setContentsMargins(5, 0, 0, 0)
-        task_layout.setSpacing(16)
 
 
         # 1. Create a QScrollArea
@@ -142,6 +137,7 @@ class CreateTaskWiget(QWidget):
             QScrollArea {
                 border: 0px;
                 background: transparent;
+                margin: 2px;
             }
             QScrollArea > QWidget > QWidget {
                 border: none;
@@ -178,10 +174,22 @@ class CreateTaskWiget(QWidget):
         scroll_area.setWidget(self.text_label)
 
 
+        self.time_label = QLabel("11:00 PM")
+        self.time_label.setStyleSheet("""
+            color: #000000;
+            font-size: 14px;
+            border: 0px;
+            padding: 0px;
+        """)
 
         self.task_checkbox = QCheckBox()
+        self.task_checkbox.setStyleSheet("""
+            color: #000000;
+            border: 0px;
+            padding: 0px;
+        """)
         self.task_checkbox.stateChanged.connect(
-            lambda state: CreatePage.task_state_change(self, self.text_label, state)
+            lambda state: self.current_page.task_state_change(self, self.text_label, state)
         )
 
         icon_label = QLabel()
@@ -191,26 +199,12 @@ class CreateTaskWiget(QWidget):
         
         
         task_layout.addWidget(self.task_checkbox, alignment=Qt.AlignmentFlag.AlignVCenter)
-        task_layout.addWidget(scroll_area, stretch=1, alignment=Qt.AlignmentFlag.AlignVCenter)
+        task_layout.addWidget(scroll_area, alignment=Qt.AlignmentFlag.AlignVCenter)
         task_layout.addStretch() # Pushes the icon all the way to the right side
+        task_layout.addWidget(self.time_label, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         task_layout.addWidget(icon_label, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
 
-
-
-    # def calculate_required_height(self, total_width):
-    #     """Manually calculates pixel bounds to ensure text is never clipped."""
-    #     # Account for layout's left and right margins (10 + 10 = 20)
-    #     text_width_limit = total_width - 20
-        
-    #     #Measure wrapped description height
-    #     metrics_desc = QFontMetrics(self.text_font)
-    #     desc_rect = metrics_desc.boundingRect(0, 0, text_width_limit, 5000, Qt.TextFlag.TextWordWrap, self.task_text)
-        
-    #     # Total height = Top Margin(10) + Title + Spacing(4) + Description + Bottom Margin(10)
-    #     # We append an extra buffer (+4) to prevent any text descenders (like 'g', 'j', 'y') from clipping
-    #     total_height = 10 + desc_rect.height() + 10 + 4
-    #     return total_height
 
 
 class CreatePage(QWidget):
@@ -401,7 +395,7 @@ class CreatePage(QWidget):
             if item not in self.not_earnable_tasks:
                 shared_state.shared.money += 5
                 self.not_earnable_tasks.append(item)
-                self.wallet.setText(f"Money: ${shared_state.shared.money}")
+                self.update_wallet()
                 print(shared_state.shared.money)
 
         elif state == 0: #item unchecked
@@ -418,11 +412,11 @@ class CreatePage(QWidget):
 
         if info:
             text = info
-            custom_task = CreateTaskWiget(text, False, item)
+            custom_task = CreateTaskWiget(self, text, False)
 
 
         else:
-            custom_task = CreateTaskWiget(text, True, item)
+            custom_task = CreateTaskWiget(self, text, True)
             self.task_entry.clear()
 
         if not text:
@@ -484,6 +478,10 @@ class CreatePage(QWidget):
             self.tasks.clear()
             self.list_widget.clear()
 
+    
+    def update_wallet(self):
+        self.wallet.setText(f"Money: ${shared_state.shared.money}")
+
 
 class TodoList(QStackedWidget):
     icon_clicked = pyqtSignal()
@@ -525,6 +523,8 @@ class TodoList(QStackedWidget):
    
     def change_page(self, page_num):
         self.setCurrentIndex(page_num)
+        page = self.currentWidget()
+        page.update_wallet()
 
     
     def receive_task(self, info):
