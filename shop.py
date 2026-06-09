@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton, QApplication
+from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton, QApplication, QVBoxLayout
 from PyQt6.QtCore import QTimer, pyqtSignal, Qt
 from PyQt6.QtGui import QPixmap
 import shared_state
@@ -18,15 +18,28 @@ class ShopPage(QWidget):
     todo_clicked = pyqtSignal()
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedSize(400, 500)
-        grid = QGridLayout()
+        self.setStyleSheet("color: #000000")
+        # ---------------- BACKGROUND ----------------
+        
+        bg = QLabel(self)
+        bg_pix = QPixmap("shopbg.jpg").scaled(self.width(), self.height(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        self.resize(bg_pix.width(), bg_pix.height())
+        bg.setPixmap(bg_pix)
+        bg.setGeometry(0,0, self.width(), self.height())
+        bg.lower()
+        bg.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        
+        
+
+        #sets item layout
+        self.setFixedSize(bg_pix.size())
+        grid = QVBoxLayout()
         self.setLayout(grid)
 
-        w=400
-        h=500
+        w=self.width()
+        h=self.height()
 
-        grid.setContentsMargins(20, 20, 20, 20)
-        grid.setSpacing(5)
+        grid.setSpacing(20)
         grid.setAlignment(Qt.AlignmentFlag.AlignTop)
         # self.back_btn = QPushButton(self)
         # self.back_btn.setText("Back")
@@ -41,13 +54,7 @@ class ShopPage(QWidget):
         # sky.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
 
-        # ---------------- BACKGROUND ----------------
-        bg = QLabel(self)
-        bg_pix = QPixmap("shop.png").scaled(240, 280, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        bg.setPixmap(bg_pix)
-        bg.setGeometry(100, 100, 240, 280) # Force it to fill the window
-        # bg.lower()
-        bg.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        
 
 
         self.icon = ClickableLabel(self)
@@ -78,8 +85,8 @@ class ShopPage(QWidget):
         self.funds = QLabel(f"funds: ${shared_state.shared.money}")
         self.display_food = QLabel(f"food: {shared_state.shared.food}")
 
-        grid.addWidget(self.funds, 0, 0)
-        grid.addWidget(self.display_food, 0, 1)
+        grid.addWidget(self.funds)
+        grid.addWidget(self.display_food)
 
         # ---------------- ITEMS ----------------
         self.items = {
@@ -92,12 +99,10 @@ class ShopPage(QWidget):
         for i, key in enumerate(self.items):
 
             btn = QPushButton(f"{key}: ${self.items[key]}")
-
+            btn.setStyleSheet("background-color: #8490a3; color: #000000")
             btn.clicked.connect(lambda _, k=key, b=btn: self.buy(k, b))
-
-            row, col = divmod(i, 2)
-            grid.addWidget(btn, row + 1, col)
-        grid.setContentsMargins(20, 20, 20, 100) 
+            grid.addWidget(btn)
+        grid.setContentsMargins(20,20,20,20) 
 
         # ... (your icon setups) ...
 
@@ -109,7 +114,7 @@ class ShopPage(QWidget):
         self.home.move(int(w - 100), int(h - 80))
         
         # Icon (Egg) is to the left
-        self.icon.move(40, int(h - 80))
+        self.icon.move(71, int(h - 80))
 
         # CRITICAL: Bring them to the very front
         self.icon.raise_()
