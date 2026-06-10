@@ -124,7 +124,7 @@ class CustomListWidget(QListWidget):
 
 
 class CreateTaskWiget(QWidget):
-    def __init__(self, current_page, text, date, time, own):
+    def __init__(self, current_page, text, own, date = '', time = ''):
         super().__init__()        
         self.current_page = current_page
         task_layout = QHBoxLayout(self)
@@ -174,8 +174,11 @@ class CreateTaskWiget(QWidget):
 
         scroll_area.setWidget(self.text_label)
 
+        if time:
+            self.time_label = QLabel(time)
+        else:
+            self.time_label = QLabel("3:00 AM")
 
-        self.time_label = QLabel(time)
         self.time_label.setStyleSheet("""
             color: #000000;
             font-size: 14px;
@@ -407,7 +410,7 @@ class CreatePage(QWidget):
         text.setFont(font)
 
 
-    def add_task(self, info = ""):
+    def add_task(self, info = {}):
         text = self.task_entry.text().strip()
 
         item = QListWidgetItem() #placeholder list item
@@ -417,11 +420,11 @@ class CreatePage(QWidget):
             text = info["task"]
             date = info["date"]
             time = info["time"]
-            custom_task = CreateTaskWiget(self, text, date, time, False)
+            custom_task = CreateTaskWiget(self, text, False, date, time)
 
 
         else:
-            custom_task = CreateTaskWiget(self, text, time, True)
+            custom_task = CreateTaskWiget(self, text, True)
             self.task_entry.clear()
 
         if not text:
