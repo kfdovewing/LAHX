@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import QWidget, QGridLayout, QLabel, QPushButton, QApplication, QVBoxLayout
+from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QApplication, QVBoxLayout, QHBoxLayout,QMainWindow
 from PyQt6.QtCore import QTimer, pyqtSignal, Qt
 from PyQt6.QtGui import QPixmap
 import shared_state
@@ -12,7 +12,7 @@ class ClickableLabel(QLabel):
             self.clicked.emit()
 
 
-class ShopPage(QWidget):
+class ShopPage(QMainWindow):
     action_triggered = pyqtSignal()
     icon_clicked = pyqtSignal()
     todo_clicked = pyqtSignal()
@@ -55,24 +55,28 @@ class ShopPage(QWidget):
 
 
         
+        hbox = QHBoxLayout()
+        hbox.setContentsMargins(0,0,0,0)
+        hbox.addSpacing(20)
 
 
         self.icon = ClickableLabel(self)
         icon_bu = QPixmap("assets/egg.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         self.icon.setPixmap(icon_bu)
-        self.icon.move(int(w/4),int(h-(h/4.8)))
+        hbox.addWidget(self.icon)
+
 
         self.home = ClickableLabel(self)
         home_bu = QPixmap("assets/home_button_icon.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         self.home.setPixmap(home_bu)
-        self.home.move(int(w-w/2.5),int(h-(h/4.8)))
+        hbox.addWidget(self.home)
 
         self.email = ClickableLabel(self)
         email_bu = QPixmap("assets/email.png").scaled(int(w * 0.1), int(h * 0.1),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         self.email.setPixmap(email_bu)
-        self.email.move(int(w/2 - email_bu.width()/2),int(h-(h/4.8)))
+        hbox.addWidget(self.email)
 
-
+        
         # Connect button to emission function
         self.home.clicked.connect(self.open_home)
         self.icon.clicked.connect(self.open_icon)
@@ -106,20 +110,15 @@ class ShopPage(QWidget):
 
         # ... (your icon setups) ...
 
-        # POSITIONING FIX
-        # Email (Todo) is in the center
-        self.email.move(int(w/2 - email_bu.width()/2), int(h - 80))
         
-        # Home is to the right
-        self.home.move(int(w - 100), int(h - 80))
-        
-        # Icon (Egg) is to the left
-        self.icon.move(71, int(h - 80))
-
         # CRITICAL: Bring them to the very front
         self.icon.raise_()
         self.home.raise_()
         self.email.raise_()
+        grid.addLayout(hbox)
+        container = QWidget()
+        container.setLayout(grid)
+        self.setCentralWidget(container)
 
     def open_home(self):
         print("Home clicked in MainWindow")
@@ -164,6 +163,8 @@ class ShopPage(QWidget):
         self.display_food.setText(f"food: {shared_state.shared.food}")
         print(f"Shop UI Refreshed: Money is {shared_state.shared.money}")
     
+    
+
 
 
     # --- PROTECTED EXECUTION BLOCK ---
