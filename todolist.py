@@ -24,6 +24,8 @@ class ClickableLabel(QLabel):
 class CustomListWidget(QListWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.date_list = []
+
         self.setDragDropMode(QListWidget.DragDropMode.InternalMove)
         self.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         # Keep layout direction standard (Left to Right) so text behaves normally
@@ -207,6 +209,8 @@ class CreateTaskWiget(QWidget):
         task_layout.addStretch() # Pushes the icon all the way to the right side
         task_layout.addWidget(self.time_label, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         task_layout.addWidget(icon_label, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+        self.current_page.tasks.append(self)
 
 
 
@@ -422,17 +426,40 @@ class CreatePage(QWidget):
             time = info["time"]
             custom_task = CreateTaskWiget(self, text, False, date, time)
 
-
         else:
-            custom_task = CreateTaskWiget(self, text, True)
+            date = "Tuesday, June 9"
+            custom_task = CreateTaskWiget(self, text, True, date)
             self.task_entry.clear()
 
         if not text:
             return
         
+        if date not in self.list_widget.date_list:
+            self.list_widget.date_list.append(date)
+            self.add_divider(date)
+        
         self.list_widget.addItem(item)
         self.list_widget.setItemWidget(item, custom_task)
             
+    
+    def add_divider(self, date_header):
+        """Helper to inject a non-interactive styled divider widget"""
+        # 1. Create a blank list item placeholder
+        item = QListWidgetItem()
+        # 2. Disable interactions (cannot hover, click, or select)
+        item.setFlags(Qt.ItemFlag.NoItemFlags) 
+        self.list_widget.addItem(item)
+
+        # 3. Create the custom visual label using HTML styling
+        date_no_year = date_header[:-5]
+        label = QLabel(date_no_year)
+        label.setContentsMargins(5, 5, 5, 2)
+        label.setStyleSheet("""
+            font-size: 13px;
+        """)
+        
+        # 4. Bind the label to the item slot
+        self.list_widget.setItemWidget(item, label)
 
 
     def get_selected_index(self):
