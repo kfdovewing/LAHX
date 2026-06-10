@@ -6,8 +6,9 @@ from PyQt6.QtWidgets import (
     QLabel, QLineEdit, QPushButton, QListWidget,
     QListWidgetItem, QMessageBox, QCheckBox, QSizePolicy, QScrollArea, QStackedWidget
 )
-from PyQt6.QtCore import pyqtSignal, Qt, QRect, QSize
+from PyQt6.QtCore import pyqtSignal, Qt, QRect, QSize, QUrl
 from PyQt6.QtGui import QPixmap, QKeyEvent, QFontMetrics
+from PyQt6.QtMultimedia import QSoundEffect
 
 
 
@@ -123,7 +124,7 @@ class CustomListWidget(QListWidget):
 
 
 class CreateTaskWiget(QWidget):
-    def __init__(self, current_page, text, own):
+    def __init__(self, current_page, text, date, time, own):
         super().__init__()        
         self.current_page = current_page
         task_layout = QHBoxLayout(self)
@@ -174,7 +175,7 @@ class CreateTaskWiget(QWidget):
         scroll_area.setWidget(self.text_label)
 
 
-        self.time_label = QLabel("11:00 PM")
+        self.time_label = QLabel(time)
         self.time_label.setStyleSheet("""
             color: #000000;
             font-size: 14px;
@@ -228,6 +229,7 @@ class CreatePage(QWidget):
         self.icon.clicked.connect(self.open_icon)
         self.shop.clicked.connect(self.open_shop)
         self.home.clicked.connect(self.open_home)
+
 
 
     #detects when certain keys pressed
@@ -305,9 +307,9 @@ class CreatePage(QWidget):
         vars_header_items.setAlignment(Qt.AlignmentFlag.AlignRight)
 
         self.wallet = QLabel(f"Money: ${shared_state.shared.money}")
-        self.wallet.setStyleSheet("font-size: 13px; color: #050505;")        
+        self.wallet.setStyleSheet("font-size: 14px; color: #050505;")        
 
-        vars_header_items.addWidget(self.wallet, alignment=Qt.AlignmentFlag.AlignBaseline)
+        vars_header_items.addWidget(self.wallet, alignment=Qt.AlignmentFlag.AlignCenter)
 
 
         #adding the sublayouts to the header
@@ -396,6 +398,7 @@ class CreatePage(QWidget):
                 shared_state.shared.money += 5
                 self.not_earnable_tasks.append(item)
                 self.update_wallet()
+                self.stack.earn_money_SE.play()
                 print(shared_state.shared.money)
 
         elif state == 0: #item unchecked
@@ -411,12 +414,14 @@ class CreatePage(QWidget):
         item.setSizeHint(QSize(200, 45))
 
         if info:
-            text = info
-            custom_task = CreateTaskWiget(self, text, False)
+            text = info["task"]
+            date = info["date"]
+            time = info["time"]
+            custom_task = CreateTaskWiget(self, text, date, time, False)
 
 
         else:
-            custom_task = CreateTaskWiget(self, text, True)
+            custom_task = CreateTaskWiget(self, text, time, True)
             self.task_entry.clear()
 
         if not text:
@@ -503,6 +508,10 @@ class TodoList(QStackedWidget):
 
         self.page_num = 0
         self.setCurrentIndex(self.page_num)
+
+        #sounds
+        self.earn_money_SE = QSoundEffect()
+        self.earn_money_SE.setSource(QUrl.fromLocalFile("sounds/collect_money.wav"))
 
     
     def page_back(self):

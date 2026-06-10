@@ -27,6 +27,7 @@
         "https://developer.chrome.com/docs/webstore/*",
         "https://tkaca.instructure.com/*"
       ],
+      "run_at": "document_end",
       "all_frames": true
     }
     ]

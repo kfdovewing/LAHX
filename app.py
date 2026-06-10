@@ -1,3 +1,4 @@
+import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS 
 
@@ -9,7 +10,7 @@ CORS(app) # Allow requests from your extension
 
 @app.route('/', methods=['POST'])
 def receive_task():
-    data = request.json
+    data = request.get_json()
     info = data.get('task', [])
 
     print("Received data:", info)
@@ -17,7 +18,8 @@ def receive_task():
     # 1. Save the array to a file for later use
     with open('saved_assignments.txt', 'a', encoding='utf-8') as f:
         for task in info:
-            f.write(task + "\n")
+            # f.write(task + "\n")
+            f.write(json.dumps(task) + "\n")
             
     return jsonify({"status": "success", "message": "Array received"}), 200
 

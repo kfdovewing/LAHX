@@ -1,7 +1,7 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "sendAssignment") {
         const dataToSend = request.data;
-
+        
         // Send to your Python Flask server
         fetch('http://127.0.0.1:5000', {  // Use 127.0.0.1 instead of localhost
             method: 'POST',

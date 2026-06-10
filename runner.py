@@ -1,4 +1,5 @@
 import sys
+import json
 from PyQt6.QtWidgets import QWidget, QStackedWidget, QApplication, QLabel
 from PyQt6.QtCore import pyqtSignal, Qt, QTimer
 
@@ -82,8 +83,14 @@ class run(QWidget):
     def read_assignments(self):
         try:
             # Open and read the file
+            info = []
             with open('saved_assignments.txt', 'r', encoding='utf-8') as f:
-                info = [line.strip() for line in f if line.strip()]
+                for line in f:
+                    # Skip empty lines
+                    if line.strip(): 
+                        # Convert the line back to a dictionary and add to our list
+                        dictionary_entry = json.loads(line)
+                        info.append(dictionary_entry)
                 
             # print(" Successfully read the info from file!")
             for task in info:
