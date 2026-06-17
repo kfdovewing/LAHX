@@ -155,3 +155,27 @@ observer.observe(document.body, {
 });
 
 
+
+// Connect directly to the Flask live stream
+// const eventSource = new EventSource('http://127.0.0');
+
+// // Listen for messages pushed from the Flask server
+// eventSource.onmessage = function(event) {
+//   console.log("Signal received from Flask:", event.data);
+
+//   if (event.data === 'change_attribute') {
+//     const element = document.querySelector('#target-element-id');
+    
+//     if (element) {
+//       element.setAttribute('data-status', 'activated_by_flask');
+//       console.log("Successfully changed webpage attribute!");
+//     } else {
+//       console.error("Target element not found on this webpage.");
+//     }
+//   }
+// };
+
+// // Handle potential server disconnects or errors gracefully
+// eventSource.onerror = function(err) {
+//   console.error("EventSource failed. Reconnecting...", err);
+// };

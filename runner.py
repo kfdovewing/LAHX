@@ -1,8 +1,9 @@
+import os
 import sys
 import json
-from PyQt6.QtWidgets import QWidget, QStackedWidget, QApplication, QLabel
-from PyQt6.QtCore import pyqtSignal, Qt, QTimer
-
+from PyQt6.QtWidgets import QWidget, QStackedWidget, QApplication, QLabel, QMainWindow, QVBoxLayout, QSizePolicy
+from PyQt6.QtCore import pyqtSignal, Qt, QTimer, QSize, QEvent, QPoint
+from PyQt6.QtGui import QCloseEvent
 # Assuming these are your file names
 from shop import ShopPage
 from todolist import TodoList
@@ -13,29 +14,35 @@ from starter_menu import start
 import shared_state
 
 
-app = QApplication(sys.argv)
+
 engine = GameEngine()
 
 
 #change
 
-class run(QWidget):
+class run(QMainWindow):
     def __init__(self):
         super().__init__()
         
         # 1. Window Setup
-        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        main_layout = QVBoxLayout(self.central_widget)
+        main_layout.setContentsMargins(0,0,0,0)
+        main_layout.setSpacing(0)
         
-        w, h = 240, 280
-        # self.resize(w, h)
-
+        w, h = 400, 400
+        
         # 2. Setup the Stack
-        self.stack = QStackedWidget(self)
-        self.resize(400,400)
-        self.stack.resize(400,400)
+        self.stack = QStackedWidget()
+        self.stack.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        self.resize(w,h)
+        # self.stack.resize(100,100)
+        main_layout.addWidget(self.stack)
         # self.stack.setGeometry(0, 0, 400, 400)
-
+        # self.resize(w, h)
         # 3. Initialize Pages (CREATE THEM FIRST)
         self.vars = shared_state.shared() #creates the variables so they don't reload
         self.start_page = start() #choose egg start screen
@@ -78,6 +85,11 @@ class run(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.check_assignments_updated)
         self.timer.start(2000)
+
+        self.drag_position = QPoint()
+        self.installEventFilter(self)
+
+
 
 
     #Adds assignments written in saved_assignments.txt to the todolist
@@ -122,22 +134,26 @@ class run(QWidget):
             return None
 
 
+
     def handle_child_start(self):
         print('Signal Received: Updating and Switching')
         # This triggers the code above!
+        
+        # self.screen = app.primaryScreen().availableGeometry()
+        # self.setGeometry(self.screen.right()-240,0,240, 280)
         self.icon.update_pet_display() 
-        self.screen = app.primaryScreen().availableGeometry()
-        self.setGeometry(self.screen.right()-240,0,240, 280)
-        self.stack.resize(240,280)
+        self.resize(404,408)
         self.stack.setCurrentWidget(self.icon)
+
 
     def handle_child_action(self):
         print('Signal Received: Switching to Home Page')
         self.home_page.update_pet_display() 
         self.screen = app.primaryScreen().availableGeometry()
         self.showMaximized()
-        self.stack.resize(self.screen.width(),self.screen.height())
+        self.resize(self.screen.width(),self.screen.height())
         self.stack.setCurrentWidget(self.home_page)
+
 
     def handle_child_action_shop(self):
         print('Signal Received: Updating Shop and Switching')
@@ -175,16 +191,47 @@ class run(QWidget):
         screen_geo = QApplication.primaryScreen().availableGeometry()
         
         # Calculate right-aligned X position
-        new_x = screen_geo.right() - w
+        # new_x = screen_geo.right() - w
         
-        self.setGeometry(new_x, 0, w, h)
+        # self.setGeometry(new_x, 0, w, h)
         # self.setGeometry(100, 100, 400, 350)
-        self.stack.resize(w, h)
+        self.resize(w, h)
         # self.stack.resize(400,350)
         self.stack.setCurrentWidget(self.list_page)
 
 
+
+    #allows user to move window around
+    def eventFilter(self, source, event):
+        # Catch left-mouse button press on any child widget
+        if event.type() == QEvent.Type.MouseButtonPress:
+            if event.button() == Qt.MouseButton.LeftButton:
+                # Save the global offset between the mouse and the QWidget corner
+                self.drag_position = event.globalPosition().toPoint() - self.pos()
+                return False # Allow child widgets to still handle regular clicks
+                
+        # Catch mouse drag movement
+        elif event.type() == QEvent.Type.MouseMove:
+            if event.buttons() == Qt.MouseButton.LeftButton and not self.drag_position.isNull():
+                # Move the entire QWidget window globally
+                self.move(event.globalPosition().toPoint() - self.drag_position)
+                return True # Prevent layout or text selection glitches during drag
+                
+        # Reset tracking when released
+        elif event.type() == QEvent.Type.MouseButtonRelease:
+            if event.button() == Qt.MouseButton.LeftButton:
+                self.drag_position = QPoint()
+                
+        return super().eventFilter(source, event)
+
+
+
+
 # --- START THE APP --- # Initialize App here
-main_window = run()
-main_window.show()
-sys.exit(app.exec())
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    main_window = run()
+    main_window.show()
+    app.exec()
+    os._exit(0)
+

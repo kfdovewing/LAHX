@@ -26,7 +26,7 @@ class StatsWindow(QWidget):
         screen_dim = QApplication.primaryScreen().availableGeometry()
         # Create a small "HUD" area for the stats
         self.stats_panel = QWidget(self)
-        self.stats_panel.setGeometry(10, 0, screen_dim.width()-30, 100) # Position it in the top-left
+        # self.stats_panel.setGeometry(10, 0, screen_dim.width()-30, 100) # Position it in the top-left
         
         panel_layout = QHBoxLayout(self.stats_panel)
         panel_layout.setSpacing(20)
@@ -40,7 +40,7 @@ class StatsWindow(QWidget):
         bg = QLabel(self)
         room = QPixmap("assets/room.png").scaled(w, h, Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation)
         bg.setPixmap(room)
-        bg.setGeometry(0, 0, w, h)
+        # bg.setGeometry(0, 0, w, h)
         bg.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents) # Let clicks pass through
         bg.lower() # Send to back
 

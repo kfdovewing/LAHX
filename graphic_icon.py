@@ -1,22 +1,15 @@
 import sys
 import shared_state
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QPixmap, QIcon
+from PyQt6.QtCore import Qt, pyqtSignal, QSize, QPoint, QEvent
 from PyQt6.QtWidgets import (
-    QApplication,
-    QLabel,
-    QWidget,
-    QGridLayout,
-    QVBoxLayout, 
-    QHBoxLayout,
-    QSizePolicy
+    QApplication, QLabel, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QSizePolicy, QPushButton, QSpacerItem
 )
 import subprocess
-from PyQt6.QtWidgets import QWidget, QLabel, QApplication
-from PyQt6.QtCore import pyqtSignal, Qt
-from PyQt6.QtGui import QPixmap
+
 
 class ClickableLabel(QLabel):
+        
     clicked = pyqtSignal()
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -25,7 +18,6 @@ class ClickableLabel(QLabel):
 
 
 
-app = QApplication(sys.argv)
 
 
 class MainWindow(QWidget):
@@ -35,102 +27,132 @@ class MainWindow(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        #self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        # self.setStyleSheet("background-color: lightblue; border: 1px solid blue;")
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
-        w, h = 240, 280
+        w, h = 404, 408
         # screen_dim = app.primaryScreen().availableGeometry()
-        self.resize(w, h)
+        self.setFixedSize(w, h)
+        
 
         layout = QGridLayout(self)
-
+        layout.setContentsMargins(0,0,0,0)
+        layout.setSpacing(0)
+        
         # 1. Background sky
-        bg_image = QPixmap("assets/sky.png")
+        bg_image = QPixmap("assets/LunchBox.png")
+        # print(bg_image.size())
         self.bg = QLabel(self)
         self.bg.setPixmap(bg_image)
-        self.bg.setScaledContents(True)
-        self.bg.setFixedSize(150, 140)
+        # self.bg.setFixedSize(int(bg_image.width()*0.8),int(bg_image.height()*0.8))
+        # self.bg.setScaledContents(True)
+
 
         # 2. Character
         pet = QPixmap(shared_state.shared.buddy)
         self.buddy = QLabel(self)
         self.buddy.setPixmap(pet)
-        self.buddy.setScaledContents(True)
+        # self.buddy.setScaledContents(True)
 
-        # 3. Egg Shell (FIXED: Added Mouse Transparency)
-        shell = QPixmap("assets/bigegg.png")
-        self.egg = QLabel(self)
-        self.egg.setPixmap(shell)
-        # This makes the egg image "invisible" to the mouse so buttons underneath work
-        self.egg.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        self.egg.setScaledContents(True)
-        self.egg.resize(w,h)
 
+        self.lunch_box_container = QWidget()
+        self.box_layout = QVBoxLayout(self.lunch_box_container)
+        self.box_layout.setContentsMargins(0, 0, 0, 0)
         
+        self.top_spacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Ignored)
+        self.box_layout.addSpacerItem(self.top_spacer)
+
+        self.open_cover = QPixmap("assets/LunchBox_Open_Cover.png")
+        self.closed_cover = QPixmap("assets/LunchBox_Cover.png")
+
+        self.box_cover = QPushButton()
+        self.box_cover.setCheckable(True)
+        self.box_cover.setStyleSheet("border: none; background: transparent;")
+        
+        self.box_layout.addWidget(self.box_cover)
+
+        self.bottom_spacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Ignored)
+        self.box_layout.addSpacerItem(self.bottom_spacer)
+
+        self.toggle_cover()
+        self.box_cover.clicked.connect(self.toggle_cover)
+
 
         overlay_widget = QWidget()
         # overlay_widget.setStyleSheet("background-color: lightblue; border: 1px solid blue;")
-        overlay_btns_layout = QHBoxLayout()
-        overlay_btns_layout.setContentsMargins(52, 2, 52, 10) #decreases margins pushing the buttons/elements closer together 
-
+        overlay_btns_layout = QHBoxLayout(overlay_widget)
+        overlay_btns_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+        overlay_btns_layout.setContentsMargins(10, 2, 10, 20) #decreases margins pushing the buttons/elements closer together 
+        overlay_btns_layout.setSpacing(3)
+        
         buttons = []
 
-        task_image = QPixmap("assets/email.png")
+        
         self.task_btn = ClickableLabel(self)
+        task_image = QPixmap("assets/email.png")
+        # task_image = QPixmap("assets/email.png").scaled(self.task_btn.size(), Qt.AspectRatioMode.KeepAspectRatioByExpanding)
         self.task_btn.setPixmap(task_image)
         buttons.append(self.task_btn)
         
-        shop_btn = QPixmap("assets/shop.png")
+        
         self.shop = ClickableLabel(self)
+        shop_btn = QPixmap("assets/shop.png")
+        # shop_btn = QPixmap("assets/shop.png").scaled(self.shop.size(), Qt.AspectRatioMode.KeepAspectRatioByExpanding)
         self.shop.setPixmap(shop_btn)
         buttons.append(self.shop)
 
-        home_btn = QPixmap("assets/home_button_icon.png")
+        
         self.home = ClickableLabel(self)
+        home_btn = QPixmap("assets/home_button_icon.png")
+        # home_btn = QPixmap("assets/home_button_icon.png").scaled(self.home.size(), Qt.AspectRatioMode.KeepAspectRatioByExpanding)
         self.home.setPixmap(home_btn)
         buttons.append(self.home)
-
+        
         for btn in buttons:
+            # btn.setMinimumSize(QSize(32,32))
+            # btn.setMaximumSize(QSize(128,128))
+            btn.setFixedSize(QSize(32,32))
             btn.setScaledContents(True)
-            btn.setFixedSize(32,32)
             btn.setStyleSheet("border: none; background: transparent;")
+            overlay_btns_layout.addWidget(btn)
+            # btn.setScaledContents(True)
 
-            overlay_btns_layout.addWidget(btn, alignment=Qt.AlignmentFlag.AlignTop)
 
-        pos_cut_for_btns = 5 #the divide value/cut for the position of the buttons veritcally
-        overlay_widget.setLayout(overlay_btns_layout)
-        overlay_widget.setFixedHeight(int(h/pos_cut_for_btns))
 
-        layout.addWidget(self.bg, 0, 0, Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.bg, 0, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
         layout.addWidget(self.buddy, 0, 0, Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.egg, 0, 0, Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(overlay_widget, 0, 0, Qt.AlignmentFlag.AlignBottom)
+        layout.addWidget(overlay_widget, 0, 0)
+        layout.addWidget(self.lunch_box_container, 0, 0, Qt.AlignmentFlag.AlignCenter)
+        
 
-
-        # 4. Navigation Buttons
-        # self.home = ClickableLabel(self)
-        # home_bu = QPixmap("assets/home_button_icon.png").scaled(int(w * 0.15), int(h * 0.15),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        # self.home.setPixmap(home_bu)
-        # self.home.move(int(w/4),int(h-(h/4.8)))
-
-        # self.shop = ClickableLabel(self)
-        # shop_bu = QPixmap("assets/shop.png").scaled(int(w * 0.15), int(h * 0.15),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        # self.shop.setPixmap(shop_bu)
-        # self.shop.move(int(w-w/2.5),int(h-(h/4.8)))
-
-        # self.email = ClickableLabel(self)
-        # email_bu = QPixmap("assets/email.png").scaled(int(w * 0.15), int(h * 0.15),Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        # self.email.setPixmap(email_bu)
-        # self.email.move(int(w/2 - email_bu.width()/2),int(h-(h/4.8)))
 
         # Connect button to emission function
         self.home.clicked.connect(self.open_home)
         self.shop.clicked.connect(self.open_shop)
         self.task_btn.clicked.connect(self.open_todo)
+
     
     def update_pet_display(self):
         new_pixmap = QPixmap(shared_state.shared.buddy)
         self.buddy.setPixmap(new_pixmap)
+
+    
+    def toggle_cover(self):
+        current_pixmap = self.open_cover if self.box_cover.isChecked() else self.closed_cover
+        # Apply the image as an Icon
+        self.box_cover.setIcon(QIcon(current_pixmap))
+        self.box_cover.setIconSize(current_pixmap.size())
+        self.box_cover.setFixedSize(current_pixmap.size())
+        # self.box_cover.setIconSize(QSize(int(current_pixmap.width()*0.8),int(current_pixmap.height()*0.8)))
+        # self.box_cover.setFixedSize(int(current_pixmap.width()*0.8),int(current_pixmap.height()*0.8))
+
+        if self.box_cover.isChecked():
+            self.top_spacer.changeSize(0, 500, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+            self.bottom_spacer.changeSize(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Ignored)
+        else:
+            self.top_spacer.changeSize(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Ignored)
+            self.bottom_spacer.changeSize(0, 38, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
 
     def open_home(self):
@@ -145,8 +167,6 @@ class MainWindow(QWidget):
 
 # --- PROTECTED EXECUTION BLOCK ---
 if __name__ == "__main__":
-    # This only runs if you play THIS file directly. 
-    # It won't run when you import it into run.py.
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()

@@ -4,14 +4,10 @@ import shared_state
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QListWidget,
-    QListWidgetItem, QMessageBox, QCheckBox, QScrollArea, 
-    QStackedWidget, QGridLayout, QSpacerItem, QSizePolicy, QStackedLayout
+    QListWidgetItem, QMessageBox, QCheckBox, QSizePolicy, QScrollArea
 )
-from PyQt6.QtCore import pyqtSignal, Qt, QRect, QSize, QUrl
-from PyQt6.QtGui import QPixmap, QKeyEvent
-from PyQt6.QtMultimedia import QSoundEffect
-from PyQt6.QtWebEngineWidgets import QWebEngineView
-from datetime import datetime
+from PyQt6.QtCore import pyqtSignal, Qt, QRect, QSize
+from PyQt6.QtGui import QPixmap, QKeyEvent, QFontMetrics
 
 
 
@@ -27,8 +23,6 @@ class ClickableLabel(QLabel):
 class CustomListWidget(QListWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.date_list = []
-
         self.setDragDropMode(QListWidget.DragDropMode.InternalMove)
         self.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         # Keep layout direction standard (Left to Right) so text behaves normally
@@ -38,7 +32,6 @@ class CustomListWidget(QListWidget):
              QListWidget {
                  font-size: 15px;
                  padding: 5px;
-                 background-color: transparent;
              }
                                        
              QListWidget::item {
@@ -48,7 +41,7 @@ class CustomListWidget(QListWidget):
                  /*margin: 4px 0px;*/
                  border-bottom: 1px solid #eee;
              }
-                     
+
              /* Hover state for items */
              QListWidget::item:hover {
                  color: #a3a3a3;
@@ -77,6 +70,11 @@ class CustomListWidget(QListWidget):
              }
          """)
         
+
+
+    # def load_tasks(self):
+    #     for task in self.task_list:
+    #         TodoList.add_task(task)
 
 
     def get_handle_rect(self, item):
@@ -130,14 +128,12 @@ class CustomListWidget(QListWidget):
 
 
 class CreateTaskWiget(QWidget):
-    def __init__(self, current_page, text, own, date = '', time = ''):
-        super().__init__()     
-        self.date = date
-        self.time = time   
+    def __init__(self, text, own, current_page):
+        super().__init__()        
         self.current_page = current_page
         task_layout = QHBoxLayout(self)
-        task_layout.setSpacing(5)
         task_layout.setContentsMargins(5, 0, 0, 0)
+        task_layout.setSpacing(16)
 
 
         # 1. Create a QScrollArea
@@ -146,7 +142,6 @@ class CreateTaskWiget(QWidget):
             QScrollArea {
                 border: 0px;
                 background: transparent;
-                margin: 2px;
             }
             QScrollArea > QWidget > QWidget {
                 border: none;
@@ -182,26 +177,10 @@ class CreateTaskWiget(QWidget):
 
         scroll_area.setWidget(self.text_label)
 
-        if time:
-            self.time_label = QLabel(time)
-        else:
-            self.time_label = QLabel("3:00 AM")
-
-        self.time_label.setStyleSheet("""
-            color: #000000;
-            font-size: 14px;
-            border: 0px;
-            padding: 0px;
-        """)
 
         self.task_checkbox = QCheckBox()
-        self.task_checkbox.setStyleSheet("""
-            color: #000000;
-            border: 0px;
-            padding: 0px;
-        """)
         self.task_checkbox.stateChanged.connect(
-            lambda state: self.current_page.task_state_change(self, self.text_label, state)
+            lambda state: current_page.task_state_change(self, self.text_label, state)
         )
 
         icon_label = QLabel()
@@ -211,37 +190,66 @@ class CreateTaskWiget(QWidget):
         
         
         task_layout.addWidget(self.task_checkbox, alignment=Qt.AlignmentFlag.AlignVCenter)
-        task_layout.addWidget(scroll_area, alignment=Qt.AlignmentFlag.AlignVCenter)
+        task_layout.addWidget(scroll_area, stretch=1, alignment=Qt.AlignmentFlag.AlignVCenter)
         task_layout.addStretch() # Pushes the icon all the way to the right side
-        task_layout.addWidget(self.time_label, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         task_layout.addWidget(icon_label, alignment=Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
-        self.current_page.tasks.append(self)
 
 
 
+    # def calculate_required_height(self, total_width):
+    #     """Manually calculates pixel bounds to ensure text is never clipped."""
+    #     # Account for layout's left and right margins (10 + 10 = 20)
+    #     text_width_limit = total_width - 20
+        
+    #     #Measure wrapped description height
+    #     metrics_desc = QFontMetrics(self.text_font)
+    #     desc_rect = metrics_desc.boundingRect(0, 0, text_width_limit, 5000, Qt.TextFlag.TextWordWrap, self.task_text)
+        
+    #     # Total height = Top Margin(10) + Title + Spacing(4) + Description + Bottom Margin(10)
+    #     # We append an extra buffer (+4) to prevent any text descenders (like 'g', 'j', 'y') from clipping
+    #     total_height = 10 + desc_rect.height() + 10 + 4
+    #     return total_height
 
-class CreatePage(QWidget):
-    def __init__(self, page_name, parent):
+
+# class CreatePage(QVBoxLayout):
+
+
+
+class TodoList(QWidget):
+    icon_clicked = pyqtSignal()
+    shop_clicked = pyqtSignal()
+    action_triggered = pyqtSignal()
+    def __init__(self, parent = None):
         super().__init__(parent)
-        self.stack = parent
+        self.setWindowTitle("To-Do List")
 
+        self.school_tasks = []
+        self.own_tasks = []
+
+        self.list_pages = []
+        self.school_page = CustomListWidget()
+        self.list_pages.append({"page": self.school_page, "name": "School"})
+        self.own_page = CustomListWidget()
+        self.list_pages.append({"page": self.own_page, "name": "Own"})
         self.tasks = []
-        self.not_earnable_tasks = []
         
 
         w = 350
         h = 500 
 
+        self.setGeometry(100, 100, 400, 350)
         
         #change value based on page user last on
-        self.setup_ui(page_name)
+        self.page_num = 0
+        self.page_name = self.list_pages[self.page_num]["name"]
+        self.current_page = self.list_pages[self.page_num]["page"]
+        self.setup_ui(self.page_name, self.current_page)
 
         # Connect button to emission function
         self.icon.clicked.connect(self.open_icon)
         self.shop.clicked.connect(self.open_shop)
         self.home.clicked.connect(self.open_home)
-
 
 
     #detects when certain keys pressed
@@ -267,61 +275,35 @@ class CreatePage(QWidget):
         self.action_triggered.emit()
 
 
+    def change_page_back(self):
+        if self.page_num == 0:
+            print("no previous page")
 
-    def setup_ui(self, page_name):
-
-        page_layout = QGridLayout(self)
-        page_layout.setContentsMargins(0,0,0,0)
-        page_layout.setSpacing(0)
-
-        bg_layout = QVBoxLayout(self)
-        bg_layout.setContentsMargins(0,25,0,0)
-        
-        self.bg_image = QPixmap("assets/List_Paper.png")
-        self.paper_bg = QLabel(self)
-        self.paper_bg.setPixmap(self.bg_image)
-
-        self.paper_bg.setScaledContents(True)
-        
-        bg_layout.addWidget(self.paper_bg)
-        
+        else:
+            self.page_num -= 1
+            self.set_current_page(self.page_num)
 
 
-        spiral_widget = QWidget()
-        spiral_widget.setFixedHeight(56) # Set this to the exact height of your spiral image
-    
-        spiral_layout = QHBoxLayout(spiral_widget)
-        spiral_layout.setContentsMargins(10, 0, 20, 0)  # Left/Right padding for the window edges
-        spiral_layout.setSpacing(0)                     # Set to 0 because we will control gaps manually
-        spiral_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    def change_page_forward(self):
+        if self.page_num == len(self.list_pages)-1:
+            print("no more pages")
 
-        # 3. Create and add exactly 5 spirals with spacers between them
-        total_spirals = 5
-
-        for i in range(total_spirals):
-            # Create an individual spiral label
-            spiral = QLabel()
-            # spiral.setStyleSheet("border: 1px solid #000;")
-            spiral.setPixmap(QPixmap("assets/List_Spiral.png"))
-            spiral.setFixedSize(50, 56)  # Match your exact spiral image dimensions
-            spiral.setAlignment(Qt.AlignmentFlag.AlignTop)
+        else: 
+            self.page_num += 1
+            self.set_current_page(self.page_num)
             
-            # Add the spiral to the layout
-            spiral_layout.addWidget(spiral)
-            
-            # Add a dynamic stretching spacer AFTER every spiral EXCEPT the last one
-            if i < total_spirals - 1:
-                spiral_layout.addStretch(1)  # The '1' tells Qt to distribute space equally
 
-        
-        
+    def set_current_page(self, num):
+        self.page_name = self.list_pages[num]["name"]
+        self.current_page = self.list_pages[num]["page"]
+        self.title.setText(f"To-Do: {self.page_name}")
+        self.list_widget = self.current_page
 
 
+
+    def setup_ui(self, page_name, list_page):
         main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(10,70,10,20)
-        main_layout.setSpacing(15)
 
-        
         header_layout = QHBoxLayout()
         header_layout.setContentsMargins(0, 0, 0, 0)
 
@@ -330,46 +312,39 @@ class CreatePage(QWidget):
         travel_btn_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         travel_btn_layout.setSpacing(4)
 
-        # buttons = []
+        buttons = []
 
-        # icon_btn = QPixmap("assets/egg.png")
+        icon_btn = QPixmap("assets/egg.png")
         self.icon = ClickableLabel(self)
-        # self.icon.setPixmap(icon_btn)
-        # buttons.append(self.icon)
+        self.icon.setPixmap(icon_btn)
+        buttons.append(self.icon)
         
-        # shop_btn = QPixmap("assets/shop.png")
+        shop_btn = QPixmap("assets/shop.png")
         self.shop = ClickableLabel(self)
-        # self.shop.setPixmap(shop_btn)
-        # buttons.append(self.shop)
+        self.shop.setPixmap(shop_btn)
+        buttons.append(self.shop)
 
-        # home_btn = QPixmap("assets/home_button_icon.png")
+        home_btn = QPixmap("assets/home_button_icon.png")
         self.home = ClickableLabel(self)
-        # self.home.setPixmap(home_btn)
-        # buttons.append(self.home)
+        self.home.setPixmap(home_btn)
+        buttons.append(self.home)
 
-        # for btn in buttons:
-        #     btn.setScaledContents(True)
-        #     btn.setFixedSize(35,35)
-        #     btn.setStyleSheet("border: none; background: transparent;")
+        for btn in buttons:
+            btn.setScaledContents(True)
+            btn.setFixedSize(35,35)
+            btn.setStyleSheet("border: none; background: transparent;")
 
-            # travel_btn_layout.addWidget(btn, alignment=Qt.AlignmentFlag.AlignLeft)
+            travel_btn_layout.addWidget(btn, alignment=Qt.AlignmentFlag.AlignLeft)
         
 
         #middle of header layout for text and more
-        # middle_header_items = QHBoxLayout()
-        # middle_header_items.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        self.title = QLabel(f"To-Do: {page_name}")
-        self.title.setStyleSheet("""
-            padding: 6px 20px 6px 6px;
-            font-size: 24px; 
-            font-weight: bold; 
-            color: #2c3e50; 
-            border-image: url("assets/To-Do_Title_Container.png") 0 0 0 0 stretch stretch;
-        """)
-        self.title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        middle_header_items = QHBoxLayout()
+        middle_header_items.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # middle_header_items.addWidget(self.title)
+        self.title = QLabel(f"To-Do: {page_name}")
+        self.title.setStyleSheet("font-size: 24px; font-weight: bold; color: #2c3e50;")
+
+        middle_header_items.addWidget(self.title)
 
 
         #layout for variables on right side of header
@@ -377,32 +352,27 @@ class CreatePage(QWidget):
         vars_header_items.setAlignment(Qt.AlignmentFlag.AlignRight)
 
         self.wallet = QLabel(f"Money: ${shared_state.shared.money}")
-        self.wallet.setStyleSheet("font-size: 14px; color: #050505;")        
+        self.wallet.setStyleSheet("font-size: 13px; color: #050505;")        
 
-        vars_header_items.addWidget(self.wallet, alignment=Qt.AlignmentFlag.AlignCenter)
+        vars_header_items.addWidget(self.wallet, alignment=Qt.AlignmentFlag.AlignBaseline)
 
 
         #adding the sublayouts to the header
-        # header_layout.addLayout(travel_btn_layout, stretch=1)
-        header_layout.addWidget(self.title, stretch=1)
-        header_layout.addLayout(vars_header_items)
+        header_layout.addLayout(travel_btn_layout, stretch=1)
+        header_layout.addLayout(middle_header_items, stretch=1)
+        header_layout.addLayout(vars_header_items, stretch=1)
         
         main_layout.addLayout(header_layout)
 
         # Input row
         input_layout = QHBoxLayout()
-        input_layout.setSpacing(30)
 
         self.task_entry = QLineEdit()
         self.task_entry.setPlaceholderText("Enter a task...")
         self.task_entry.setStyleSheet("""
-            /*padding: 15px 0px 15px 10px;*/
-            padding: 7px 6px 7px 6px;
-            font-size: 14px;
-            border: 2px solid #b8b8b8;
+            padding: 6px;
+            border: 2px solid #bdc3c7;
             border-radius: 6px;
-            background-color: transparent;    
-            /*border-image: url("assets/Line2.png") 0 0 0 0 stretch stretch;*/
         """)
 
         add_btn = QPushButton("+")
@@ -424,16 +394,8 @@ class CreatePage(QWidget):
         main_layout.addLayout(input_layout)
 
         # Task list
-        default_flags = (
-            Qt.ItemFlag.ItemIsSelectable | 
-            Qt.ItemFlag.ItemIsEnabled | 
-            Qt.ItemFlag.ItemIsUserCheckable | 
-            Qt.ItemFlag.ItemIsDragEnabled
-        )
 
-        self.list_widget = CustomListWidget()
-        default_item_flags = QListWidgetItem().setFlags(default_flags)
-
+        self.list_widget = list_page
         main_layout.addWidget(self.list_widget)
 
         # Buttons
@@ -457,8 +419,8 @@ class CreatePage(QWidget):
             """)
 
         clear_btn.clicked.connect(self.clear_all)
-        back_arrow.clicked.connect(lambda: self.stack.page_back())
-        forward_arrow.clicked.connect(lambda: self.stack.page_forward())
+        back_arrow.clicked.connect(self.change_page_back)
+        forward_arrow.clicked.connect(self.change_page_forward)
 
         btn_layout.addWidget(clear_btn)
         btn_layout.addStretch(1)
@@ -466,15 +428,8 @@ class CreatePage(QWidget):
         btn_layout.addWidget(forward_arrow)
 
         main_layout.addLayout(btn_layout)
-        
 
-        page_layout.addLayout(bg_layout, 0, 0)
-        page_layout.addWidget(spiral_widget,0,0,alignment=Qt.AlignmentFlag.AlignTop)
-        page_layout.addLayout(main_layout,0,0)
-
-
-
-        self.setLayout(page_layout)
+        self.setLayout(main_layout)
 
 
 
@@ -485,11 +440,10 @@ class CreatePage(QWidget):
         if state == 2: #item checked
             font.setStrikeOut(True)
 
-            if item not in self.not_earnable_tasks:
+            if item in self.tasks:
                 shared_state.shared.money += 5
-                self.not_earnable_tasks.append(item)
-                self.update_wallet()
-                self.stack.earn_money_SE.play()
+                self.tasks.remove(item)
+                self.wallet.setText(f"Money: ${shared_state.shared.money}")
                 print(shared_state.shared.money)
 
         elif state == 0: #item unchecked
@@ -498,63 +452,28 @@ class CreatePage(QWidget):
         text.setFont(font)
 
 
-    def add_task(self, info = {}):
+    def add_task(self, info = ""):
         text = self.task_entry.text().strip()
 
         item = QListWidgetItem() #placeholder list item
         item.setSizeHint(QSize(200, 45))
 
-        if info:
-            text = info["task"]
-            date = info["date"]
-            time = info["time"]
-            custom_task = CreateTaskWiget(self, text, False, date, time)
+        if info: #school task
+            text = info
+            custom_task = CreateTaskWiget(text, False, item)
+            self.school_tasks.append(custom_task)
 
-        else:
-            date = "June 10, 2026"
-            time = "05:00 PM"
-            custom_task = CreateTaskWiget(self, text, True, date, time)
+        else: #own task
+            custom_task = CreateTaskWiget(text, True, item)
+            self.own_tasks.append(custom_task)
             self.task_entry.clear()
 
         if not text:
             return
         
-        if date not in self.list_widget.date_list:
-            self.list_widget.date_list.append(date)
-            self.add_divider(date)
-        
         self.list_widget.addItem(item)
         self.list_widget.setItemWidget(item, custom_task)
-
-
             
-    
-    def add_divider(self, date_header):
-        """Helper to inject a non-interactive styled divider widget"""
-        # 1. Create a blank list item placeholder
-        divider_obj = QListWidgetItem()
-        divider_obj.setSizeHint(QSize(200, 45))
-        # 2. Disable interactions (cannot hover, click, or select)
-        divider_obj.setFlags(Qt.ItemFlag.NoItemFlags) 
-        self.list_widget.addItem(divider_obj)
-
-        # 3. Create the custom visual label using HTML styling
-        date_no_year = date_header[:-6]
-        label = QLabel(f"------ {date_no_year} ------")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        label.setContentsMargins(0, 0, 0, 0)
-        label.setStyleSheet("""
-            border: 0px;
-            padding: 0px;
-            font-size: 16px;
-            font-weight: bold;
-            /*margin: 0px;*/
-        """)
-        label.adjustSize()
-        
-        
-        # 4. Bind the label to the item slot
-        self.list_widget.setItemWidget(divider_obj, label)
 
 
     def get_selected_index(self):
@@ -607,67 +526,6 @@ class CreatePage(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             self.tasks.clear()
             self.list_widget.clear()
-
-    
-    def update_wallet(self):
-        self.wallet.setText(f"Money: ${shared_state.shared.money}")
-
-
-class TodoList(QStackedWidget):
-    icon_clicked = pyqtSignal()
-    shop_clicked = pyqtSignal()
-    action_triggered = pyqtSignal()
-    def __init__(self, parent = None):
-        super().__init__(parent)
-        self.setWindowTitle("To-Do List")
-        # self.setGeometry(100, 100, 400, 350)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-
-        self.list_pages = []
-        self.school_page = CreatePage("School", parent=self)
-        self.list_pages.append(self.school_page)
-        self.own_page = CreatePage("Own", parent=self)
-        self.list_pages.append(self.own_page)
-
-        for page in self.list_pages:
-            self.addWidget(page)
-
-        self.page_num = 0
-        self.setCurrentIndex(self.page_num)
-
-        #sounds
-        self.earn_money_SE = QSoundEffect()
-        self.earn_money_SE.setSource(QUrl.fromLocalFile("sounds/collect_money.wav"))
-
-    
-    def page_back(self):
-        if self.page_num > 0:
-            self.page_num -= 1
-            self.change_page(self.page_num)
-        
-        else:
-            print("no previous page")
-    
-    def page_forward(self):
-        if self.page_num < (len(self.list_pages)-1):
-            self.page_num += 1
-            self.change_page(self.page_num)
-        
-        else:
-            print("no more pages")
-   
-    def change_page(self, page_num):
-        self.setCurrentIndex(page_num)
-        page = self.currentWidget()
-        page.update_wallet()
-
-    
-    def receive_task(self, info):
-        self.school_page.add_task(info)
-
-
-
 
 
 if __name__ == "__main__":

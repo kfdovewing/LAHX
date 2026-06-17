@@ -12,7 +12,7 @@ class ClickableLabel(QLabel):
             self.clicked.emit()
 
 
-class ShopPage(QMainWindow):
+class ShopPage(QWidget):
     action_triggered = pyqtSignal()
     icon_clicked = pyqtSignal()
     todo_clicked = pyqtSignal()
@@ -22,17 +22,18 @@ class ShopPage(QMainWindow):
         # ---------------- BACKGROUND ----------------
         
         bg = QLabel(self)
-        bg_pix = QPixmap("shopbg.jpg").scaled(self.width(), self.height(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-        self.resize(bg_pix.width(), bg_pix.height())
+        bg_pix = QPixmap("shopbg.jpg")
+        # bg_pix = QPixmap("shopbg.jpg").scaled(self.width(), self.height(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        # self.resize(bg_pix.width(), bg_pix.height())
         bg.setPixmap(bg_pix)
-        bg.setGeometry(0,0, self.width(), self.height())
+        # bg.setGeometry(0,0, self.width(), self.height())
         bg.lower()
         bg.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         
         
 
         #sets item layout
-        self.setFixedSize(bg_pix.size())
+        # self.setFixedSize(bg_pix.size())
         grid = QVBoxLayout()
         self.setLayout(grid)
 
@@ -116,9 +117,9 @@ class ShopPage(QMainWindow):
         self.home.raise_()
         self.email.raise_()
         grid.addLayout(hbox)
-        container = QWidget()
-        container.setLayout(grid)
-        self.setCentralWidget(container)
+        # container = QWidget()
+        # container.setLayout(grid)
+        # self.setCentralWidget(container)
 
     def open_home(self):
         print("Home clicked in MainWindow")

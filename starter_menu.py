@@ -35,6 +35,7 @@ class start(QWidget):
         centery = int(h/2)
         # self.resize(w,h)
         bg = QLabel(self)
+        bg.setAlignment(Qt.AlignmentFlag.AlignCenter)
         egg_bg = QPixmap("assets/eggselectionbg.png").scaled(w,h,Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         bg.setPixmap(egg_bg)
 
